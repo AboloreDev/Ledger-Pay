@@ -122,10 +122,7 @@ public class OutboxEvent {
         return claimToken;
     }
 
-    public static OutboxEvent create(
-            UUID aggregateId,
-            String eventType,
-            JsonNode payload) {
+    public static OutboxEvent create(UUID aggregateId, String eventType, JsonNode payload) {
 
         Instant now = Instant.now();
 

@@ -54,6 +54,15 @@ public class Payment {
     @Column(name = "checkout_url")
     private String checkoutUrl;
 
+    @Column(name = "expires_at", nullable = false)
+    private Instant expiresAt;
+
+    @Column(name = "paid_at")
+    private Instant paidAt;
+
+    @Column(name = "late_payment", nullable = false)
+    private boolean latePayment = false;
+
     protected Payment() {
         // Required by JPA
     }
@@ -67,6 +76,9 @@ public class Payment {
         private String providerCheckoutId;
         private String providerReference;
         private String checkoutUrl;
+        private Instant expiresAt;
+        private Instant paidAt;
+        private boolean latePayment;
 
         public Builder setReference(String reference) {
             this.reference = reference;
@@ -95,6 +107,21 @@ public class Payment {
 
         public Builder setCheckoutUrl(String checkoutUrl) {
             this.checkoutUrl = checkoutUrl;
+            return this;
+        }
+
+        public Builder setExpiresAt(Instant expiresAt) {
+            this.expiresAt = expiresAt;
+            return this;
+        }
+
+        public Builder setPaidAt(Instant paidAt) {
+            this.paidAt = paidAt;
+            return this;
+        }
+
+        public Builder setLatePayment(boolean latePayment) {
+            this.latePayment = latePayment;
             return this;
         }
 
@@ -134,6 +161,9 @@ public class Payment {
         this.checkoutUrl = builder.checkoutUrl;
         this.createdAt = Instant.now();
         this.updatedAt = this.createdAt;
+        this.expiresAt = builder.expiresAt;
+        this.paidAt = builder.paidAt;
+        this.latePayment = builder.latePayment;
     }
 
     public UUID getId() {
@@ -174,6 +204,18 @@ public class Payment {
 
     public String getCheckoutUrl() {
         return checkoutUrl;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
+
+    public Instant getPaidAt() {
+        return paidAt;
+    }
+
+    public boolean isLatePayment() {
+        return latePayment;
     }
 
     // METHODS

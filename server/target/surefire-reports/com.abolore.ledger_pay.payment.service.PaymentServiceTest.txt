@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.abolore.ledger_pay.payment.service.PaymentServiceTest
 -------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.188 s -- in com.abolore.ledger_pay.payment.service.PaymentServiceTest
+Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.173 s -- in com.abolore.ledger_pay.payment.service.PaymentServiceTest

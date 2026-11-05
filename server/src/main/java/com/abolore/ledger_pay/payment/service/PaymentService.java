@@ -1,6 +1,8 @@
 package com.abolore.ledger_pay.payment.service;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -57,13 +59,17 @@ public class PaymentService {
 
                 if (paymentRepository.existsByReference(reference)) {
                         throw new DuplicatePaymentException(
-                                        "Payment reference already exists: " + reference);
+                                        "Payment reference already exists");
                 }
+
+                Instant now = Instant.now();
+                Instant expiresAt = now.plus(Duration.ofMinutes(15));
 
                 Payment payment = new Payment.Builder()
                                 .setReference(reference)
                                 .setAmount(amount)
                                 .setCurrency(currency)
+                                .setExpiresAt(expiresAt)
                                 .build();
 
                 payment = paymentRepository.save(payment);

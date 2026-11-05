@@ -31,39 +31,19 @@ public class OutboxEventClaimService {
     public Optional<OutboxEvent> claimNextEvent() {
         Instant now = Instant.now();
 
-        Object result = entityManager.createNativeQuery("""
-                SELECT id
-                FROM outbox_events
-                WHERE
-                    (status = 'PENDING' AND available_at <= :now)
-                    OR
-                    (status = 'PROCESSING' AND locked_until <= :now)
-                ORDER BY available_at, created_at
-                LIMIT 1
-                FOR UPDATE SKIP LOCKED
-                """)
-                .setParameter("now", now)
-                .getResultStream()
-                .findFirst()
-                .orElse(null);
+        return outboxEventRepository.findNextEventIdToClaim(now)
+                .map(eventId -> {
+                    OutboxEvent event = outboxEventRepository.findById(eventId)
+                            .orElseThrow(() -> new IllegalStateException(
+                                    "Claimed outbox event was not found: " + eventId));
 
-        if (result == null) {
-            return Optional.empty();
-        }
+                    event.setStatus(OutboxEventStatus.PROCESSING);
+                    event.setAttempts(event.getAttempts() + 1);
+                    event.setLockedUntil(now.plusSeconds(LEASE_SECONDS));
+                    event.setUpdatedAt(now);
+                    event.setClaimToken(UUID.randomUUID());
 
-        UUID eventId = (UUID) result;
-
-        OutboxEvent event = outboxEventRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalStateException(
-                        "Claimed outbox event was not found: "
-                                + eventId));
-
-        event.setStatus(OutboxEventStatus.PROCESSING);
-        event.setAttempts(event.getAttempts() + 1);
-        event.setLockedUntil(now.plusSeconds(LEASE_SECONDS));
-        event.setUpdatedAt(now);
-        event.setClaimToken(UUID.randomUUID());
-
-        return Optional.of(outboxEventRepository.save(event));
+                    return event;
+                });
     }
 }

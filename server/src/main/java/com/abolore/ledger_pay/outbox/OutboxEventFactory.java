@@ -18,9 +18,7 @@ public class OutboxEventFactory {
 
     public OutboxEvent paymentInitiationRequested(PaymentInitiationPayload payload) {
 
-        return OutboxEvent.create(
-                payload.paymentId(),
-                OutboxEventType.PAYMENT_INITIATION_REQUESTED.name(),
+        return OutboxEvent.create(payload.paymentId(), OutboxEventType.PAYMENT_INITIATION_REQUESTED.name(),
                 objectMapper.valueToTree(payload));
     }
 }
