@@ -14,73 +14,73 @@ import com.abolore.ledger_pay.webhooks.repository.WebhookOutboxRepository;
 @ActiveProfiles("test")
 class WebhookIngestionIntegrationTest {
 
-    @Autowired
-    private WebhookIngestionService webhookIngestionService;
+  @Autowired
+  private WebhookIngestionService webhookIngestionService;
 
-    @Autowired
-    private WebhookOutboxRepository webhookOutboxRepository;
+  @Autowired
+  private WebhookOutboxRepository webhookOutboxRepository;
 
-    private final String payload = """
-            {
-              "event": "charge.success",
-              "data": {
-                "id": 123456789,
-                "reference": "PAY-TEST-001",
-                "status": "success",
-                "amount": 500000,
-                "currency": "NGN"
-              }
-            }
-            """;
+  private final String payload = """
+      {
+        "event": "charge.success",
+        "data": {
+          "id": 123456789,
+          "reference": "PAY-TEST-001",
+          "status": "success",
+          "amount": 500000,
+          "currency": "NGN"
+        }
+      }
+      """;
 
-    @BeforeEach
-    void cleanDatabase() {
-        webhookOutboxRepository.deleteAll();
-    }
+  @BeforeEach
+  void cleanDatabase() {
+    webhookOutboxRepository.deleteAll();
+  }
 
-    @Test
-    void shouldInsertWebhookOnFirstDelivery() {
+  @Test
+  void shouldInsertWebhookOnFirstDelivery() {
 
-        webhookIngestionService.receiveWebhook(payload);
+    webhookIngestionService.receiveWebhook(payload);
 
-        assertEquals(1, webhookOutboxRepository.count());
-    }
+    assertEquals(1, webhookOutboxRepository.count());
+  }
 
-    @Test
-    void shouldNotInsertDuplicateWebhook() {
+  @Test
+  void shouldNotInsertDuplicateWebhook() {
 
-        webhookIngestionService.receiveWebhook(payload);
-        webhookIngestionService.receiveWebhook(payload);
+    webhookIngestionService.receiveWebhook(payload);
+    webhookIngestionService.receiveWebhook(payload);
 
-        assertEquals(1, webhookOutboxRepository.count());
-    }
+    assertEquals(1, webhookOutboxRepository.count());
+  }
 
-    @Test
-    void shouldInsertDifferentProviderTransaction() {
+  @Test
+  void shouldInsertDifferentProviderTransaction() {
 
-        webhookIngestionService.receiveWebhook(payload);
+    webhookIngestionService.receiveWebhook(payload);
 
-        String secondPayload = payload.replace(
-                "123456789",
-                "987654321");
+    String secondPayload = payload.replace(
+        "123456789",
+        "987654321");
 
-        webhookIngestionService.receiveWebhook(secondPayload);
+    webhookIngestionService.receiveWebhook(secondPayload);
 
-        assertEquals(2, webhookOutboxRepository.count());
-    }
+    assertEquals(2, webhookOutboxRepository.count());
+  }
 
-    @Test
-    void shouldIgnoreUnsupportedEvent() {
+  @Test
+  void shouldIgnoreUnsupportedEvent() {
 
-        String unsupportedPayload = """
-                {
-                  "event": "transfer.success",
-                  "data": {}
-                }
-                """;
+    String unsupportedPayload = """
+        {
+          "event": "transfer.success",
+          "data": {}
+        }
+        """;
 
-        webhookIngestionService.receiveWebhook(unsupportedPayload);
+    webhookIngestionService.receiveWebhook(unsupportedPayload);
 
-        assertEquals(0, webhookOutboxRepository.count());
-    }
+    assertEquals(0, webhookOutboxRepository.count());
+  }
 }
