@@ -10,8 +10,7 @@ import com.abolore.ledger_pay.ledger.service.LedgerAccountService;
 public class LedgerAccountInitializer {
 
     @Bean
-    CommandLineRunner initializeLedger(
-            LedgerAccountService ledgerAccountService) {
+    CommandLineRunner initializeLedger(LedgerAccountService ledgerAccountService) {
 
         return args -> ledgerAccountService.initializeStandardAccounts();
     }

@@ -37,4 +37,24 @@ public class WebhookOutboxClaimService {
 
         return events;
     }
+
+    @Transactional
+    public void markPublished(UUID eventId, UUID claimToken) {
+
+        WebhookOutbox event = webhookOutboxRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Webhook outbox event not found: " + eventId));
+
+        event.markPublished(claimToken);
+    }
+
+    @Transactional
+    public void markFailed(UUID eventId, UUID claimToken, String error) {
+
+        WebhookOutbox event = webhookOutboxRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalStateException(
+                        "Webhook outbox event not found: " + eventId));
+
+        event.markFailed(claimToken, error);
+    }
 }

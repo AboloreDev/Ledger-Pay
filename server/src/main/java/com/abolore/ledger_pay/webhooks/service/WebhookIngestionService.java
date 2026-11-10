@@ -40,16 +40,17 @@ public class WebhookIngestionService {
 
             String deduplicationKey = eventType + ":" + validated.providerTransactionId();
 
-            webhookEventAuditService.createAudit(
-                    PROVIDER,
-                    deduplicationKey,
-                    eventType,
-                    transactionReference,
-                    rawPayload);
-
             if (!validated.isSupported()) {
                 return;
             }
+
+            webhookOutboxRepository.insertIfAbsent(
+                    UUID.randomUUID(),
+                    PROVIDER,
+                    eventType,
+                    deduplicationKey,
+                    transactionReference,
+                    rawPayload);
 
             webhookOutboxRepository.insertIfAbsent(
                     UUID.randomUUID(),

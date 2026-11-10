@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 @Entity
 @Table(name = "webhook_event_audit", uniqueConstraints = {
         @UniqueConstraint(name = "uq_webhook_audit_provider_event", columnNames = { "provider", "deduplication_key" })
@@ -25,6 +28,7 @@ public class WebhookEventAudit {
     @Column(name = "transaction_reference")
     private String transactionReference;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
     private String payload;
 

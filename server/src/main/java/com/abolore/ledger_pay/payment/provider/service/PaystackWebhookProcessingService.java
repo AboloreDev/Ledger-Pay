@@ -1,11 +1,11 @@
 package com.abolore.ledger_pay.payment.provider.service;
 
 import java.math.BigDecimal;
-import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
 import com.abolore.ledger_pay.payment.entity.Payment;
+import com.abolore.ledger_pay.payment.entity.PaymentStatus;
 import com.abolore.ledger_pay.payment.provider.paystack.PaystackVerificationResponse;
 import com.abolore.ledger_pay.payment.service.PaymentService;
 import com.abolore.ledger_pay.webhook_event_audit.service.WebhookEventAuditService;
@@ -27,11 +27,10 @@ public class PaystackWebhookProcessingService {
     }
 
     @Transactional
-    public void processSuccessfulPayment(PaystackVerificationResponse.Data transaction, UUID auditId,
+    public void processSuccessfulPayment(PaystackVerificationResponse.Data transaction,
             String deduplicationKey) {
 
-        Payment payment = paymentService.getPaymentByReference(
-                transaction.reference());
+        Payment payment = paymentService.getPaymentByReference(transaction.reference());
 
         if (!payment.getCurrency().equalsIgnoreCase(transaction.currency())) {
             throw new IllegalStateException("Payment currency mismatch");
@@ -41,6 +40,13 @@ public class PaystackWebhookProcessingService {
 
         if (payment.getAmount().compareTo(verifiedAmount) != 0) {
             throw new IllegalStateException("Payment amount mismatch");
+        }
+
+        if (payment.getStatus() == PaymentStatus.SUCCEEDED) {
+
+            auditService.markProcessed(PROVIDER, deduplicationKey);
+
+            return;
         }
 
         paymentService.markPaymentSucceeded(payment.getId());

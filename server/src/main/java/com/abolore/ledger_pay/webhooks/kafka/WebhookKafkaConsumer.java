@@ -7,6 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import com.abolore.ledger_pay.payment.provider.service.PaystackVerificationService;
+import com.abolore.ledger_pay.payment.provider.service.PaystackWebhookProcessingService;
 import com.abolore.ledger_pay.webhook_event_audit.entity.WebhookEventAudit;
 import com.abolore.ledger_pay.webhook_event_audit.service.WebhookEventAuditService;
 import com.abolore.ledger_pay.webhooks.dto.PaystackWebhookEvent;
@@ -23,12 +24,14 @@ public class WebhookKafkaConsumer {
     private final ObjectMapper objectMapper;
     private final PaystackVerificationService paystackVerificationService;
     private final WebhookEventAuditService auditService;
+    private final PaystackWebhookProcessingService paystackWebhookProcessingService;
 
     public WebhookKafkaConsumer(ObjectMapper objectMapper, PaystackVerificationService paystackVerificationService,
-            WebhookEventAuditService auditService) {
+            WebhookEventAuditService auditService, PaystackWebhookProcessingService paystackWebhookProcessingService) {
         this.objectMapper = objectMapper;
         this.paystackVerificationService = paystackVerificationService;
         this.auditService = auditService;
+        this.paystackWebhookProcessingService = paystackWebhookProcessingService;
     }
 
     @KafkaListener(topics = "webhook-events", groupId = "${spring.kafka.consumer.group-id}")
@@ -55,16 +58,22 @@ public class WebhookKafkaConsumer {
 
             var transaction = paystackVerificationService.verifyTransaction(reference);
 
+            paystackWebhookProcessingService.processSuccessfulPayment(transaction, deduplicationKey);
+
             logger.info(
                     "Paystack transaction verified. Reference: {}, Amount: {}, Currency: {}",
                     transaction.reference(),
                     transaction.amount(),
                     transaction.currency());
 
-        } catch (RuntimeException ex) {
+        } catch (RuntimeException exception) {
+
+            auditService.markFailed("PAYSTACK", deduplicationKey, exception.getMessage());
+
             logger.error("Failed to process webhook event key={} partition={} offset={}",
-                    record.key(), record.partition(), record.offset(), ex);
-            throw ex;
+                    record.key(), record.partition(), record.offset(), exception);
+
+            throw exception;
         }
     }
 }

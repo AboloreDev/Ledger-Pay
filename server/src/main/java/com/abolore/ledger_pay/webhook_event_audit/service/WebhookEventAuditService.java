@@ -1,5 +1,8 @@
 package com.abolore.ledger_pay.webhook_event_audit.service;
 
+import java.time.Instant;
+import java.util.UUID;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,13 +19,13 @@ public class WebhookEventAuditService {
     }
 
     @Transactional
-    public WebhookEventAudit createAudit(String provider, String deduplicationKey, String eventType,
+    public boolean createAuditIfAbsent(String provider, String deduplicationKey, String eventType,
             String transactionReference, String payload) {
 
-        WebhookEventAudit audit = WebhookEventAudit.create(provider, deduplicationKey, eventType, transactionReference,
-                payload);
+        int inserted = auditRepository.insertIfAbsent(UUID.randomUUID(), provider, deduplicationKey, eventType,
+                transactionReference, payload, Instant.now());
 
-        return auditRepository.save(audit);
+        return inserted == 1;
     }
 
     @Transactional

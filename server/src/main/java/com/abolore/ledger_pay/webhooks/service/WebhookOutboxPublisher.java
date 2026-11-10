@@ -1,6 +1,7 @@
 package com.abolore.ledger_pay.webhooks.service;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletionException;
 
 import org.slf4j.Logger;
@@ -41,32 +42,66 @@ public class WebhookOutboxPublisher {
         int failed = 0;
 
         for (WebhookOutbox event : events) {
+
+            UUID eventId = event.getId();
+            UUID claimToken = event.getClaimToken();
+
+            // Publish to Kafka
             try {
                 webhookKafkaProducer
-                        .sendMessageToConsumer(event.getDeduplicationKey(), event.getPayload())
+                        .sendMessageToConsumer(
+                                event.getDeduplicationKey(),
+                                event.getPayload())
                         .join();
 
-                event.markPublished(event.getId());
+            } catch (RuntimeException exception) {
+
+                Throwable cause = (exception instanceof CompletionException
+                        && exception.getCause() != null)
+                                ? exception.getCause()
+                                : exception;
+
+                // Kafka publishing failed
+                try {
+                    webhookOutboxClaimService.markFailed(
+                            eventId,
+                            claimToken,
+                            cause.getMessage());
+
+                } catch (RuntimeException databaseException) {
+                    logger.error(
+                            "Kafka publishing failed, and outbox failure status could not be saved. eventId={}",
+                            eventId,
+                            databaseException);
+                }
+
+                failed++;
+
+                logger.error("Failed to publish outbox event id={} dedupKey={}", eventId, event.getDeduplicationKey(),
+                        cause);
+
+                continue;
+            }
+
+            // Kafka publishing succeeded
+            try {
+                webhookOutboxClaimService.markPublished(eventId, claimToken);
 
                 published++;
 
-                logger.info("Published outbox event id={} dedupKey={}",
-                        event.getId(), event.getDeduplicationKey());
+                logger.info("Published outbox event id={} dedupKey={}", eventId, event.getDeduplicationKey());
 
-            } catch (RuntimeException exception) {
-                Throwable cause = (exception instanceof CompletionException && exception.getCause() != null)
-                        ? exception.getCause()
-                        : exception;
+            } catch (RuntimeException databaseException) {
 
-                event.markFailed(event.getId(), cause.getMessage());
-                failed++;
-
-                logger.error("Failed to publish outbox event id={} dedupKey={}",
-                        event.getId(), event.getDeduplicationKey(), cause);
+                // Kafka succeeded, but database update failed
+                logger.error(
+                        "Kafka accepted the event, but outbox status could not be updated to PUBLISHED. eventId={} dedupKey={}. Event may be published again after lease expiry.",
+                        eventId,
+                        event.getDeduplicationKey(),
+                        databaseException);
             }
         }
 
         logger.info("Outbox publish run finished: published={}, failed={}", published, failed);
-
     }
 }
