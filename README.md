@@ -91,7 +91,7 @@ Every journal entry must balance:
 **1. Clone the repository**
 
 ```bash
-git clone <repository-url>
+git clone <https://github.com/AboloreDev/Ledger-Pay>
 cd ledger-pay
 ```
 
