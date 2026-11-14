@@ -19,16 +19,6 @@ public class WebhookEventAuditService {
     }
 
     @Transactional
-    public boolean createAuditIfAbsent(String provider, String deduplicationKey, String eventType,
-            String transactionReference, String payload) {
-
-        int inserted = auditRepository.insertIfAbsent(UUID.randomUUID(), provider, deduplicationKey, eventType,
-                transactionReference, payload, Instant.now());
-
-        return inserted == 1;
-    }
-
-    @Transactional
     public void markProcessing(String provider, String deduplicationKey) {
         WebhookEventAudit audit = findAudit(provider, deduplicationKey);
         audit.markProcessing();

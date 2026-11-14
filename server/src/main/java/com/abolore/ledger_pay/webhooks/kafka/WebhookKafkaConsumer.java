@@ -45,9 +45,7 @@ public class WebhookKafkaConsumer {
         try {
             auditService.markProcessing(PROVIDER, deduplicationKey);
 
-            PaystackWebhookEvent event = objectMapper.readValue(
-                    record.value(),
-                    PaystackWebhookEvent.class);
+            PaystackWebhookEvent event = objectMapper.readValue(record.value(), PaystackWebhookEvent.class);
 
             if (!"charge.success".equals(event.event())) {
                 logger.info("Ignoring unsupported event: {}", event.event());

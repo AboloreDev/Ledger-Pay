@@ -1,5 +1,6 @@
 package com.abolore.ledger_pay.journal.repository;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -12,4 +13,6 @@ public interface JournalLineRepository extends JpaRepository<JournalLines, UUID>
     List<JournalLines> findByJournalEntry_Id(UUID journalEntry_id);
 
     List<JournalLines> findByLedgerAccount_Id(UUID ledgerAccount_Id);
+
+    List<JournalLines> findByJournalEntry_IdIn(Collection<UUID> journalEntryIds);
 }

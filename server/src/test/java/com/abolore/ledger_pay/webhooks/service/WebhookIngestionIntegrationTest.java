@@ -2,12 +2,15 @@ package com.abolore.ledger_pay.webhooks.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import com.abolore.ledger_pay.webhook_event_audit.repository.WebhookEventAuditRepository;
 import com.abolore.ledger_pay.webhooks.repository.WebhookOutboxRepository;
 
 @SpringBootTest
@@ -18,28 +21,36 @@ class WebhookIngestionIntegrationTest {
   private WebhookIngestionService webhookIngestionService;
 
   @Autowired
+  private WebhookEventAuditRepository webhookEventAuditRepository;
+
+  @Autowired
   private WebhookOutboxRepository webhookOutboxRepository;
 
-  private final String payload = """
-      {
-        "event": "charge.success",
-        "data": {
-          "id": 123456789,
-          "reference": "PAY-TEST-001",
-          "status": "success",
-          "amount": 500000,
-          "currency": "NGN"
+  private String payload(long providerId, String reference) {
+    return """
+        {
+          "event": "charge.success",
+          "data": {
+            "id": %d,
+            "reference": "%s",
+            "status": "success",
+            "amount": 500000,
+            "currency": "NGN"
+          }
         }
-      }
-      """;
+        """.formatted(providerId, reference);
+  }
 
   @BeforeEach
   void cleanDatabase() {
     webhookOutboxRepository.deleteAll();
+    webhookEventAuditRepository.deleteAll();
   }
 
   @Test
   void shouldInsertWebhookOnFirstDelivery() {
+
+    String payload = payload(System.nanoTime(), "PAY-" + UUID.randomUUID());
 
     webhookIngestionService.receiveWebhook(payload);
 
@@ -48,6 +59,8 @@ class WebhookIngestionIntegrationTest {
 
   @Test
   void shouldNotInsertDuplicateWebhook() {
+
+    String payload = payload(System.nanoTime(), "PAY-" + UUID.randomUUID());
 
     webhookIngestionService.receiveWebhook(payload);
     webhookIngestionService.receiveWebhook(payload);
@@ -58,13 +71,8 @@ class WebhookIngestionIntegrationTest {
   @Test
   void shouldInsertDifferentProviderTransaction() {
 
-    webhookIngestionService.receiveWebhook(payload);
-
-    String secondPayload = payload.replace(
-        "123456789",
-        "987654321");
-
-    webhookIngestionService.receiveWebhook(secondPayload);
+    webhookIngestionService.receiveWebhook(payload(System.nanoTime(), "PAY-" + UUID.randomUUID()));
+    webhookIngestionService.receiveWebhook(payload(System.nanoTime(), "PAY-" + UUID.randomUUID()));
 
     assertEquals(2, webhookOutboxRepository.count());
   }

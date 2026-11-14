@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.abolore.ledger_pay.webhooks.entity.WebhookOutbox;
 import com.abolore.ledger_pay.webhooks.repository.WebhookOutboxRepository;
+import com.abolore.ledger_pay.webhooks.security.RetryBackoffPolicy;
 
 import jakarta.transaction.Transactional;
 
@@ -16,12 +17,15 @@ import jakarta.transaction.Transactional;
 public class WebhookOutboxClaimService {
 
     private final WebhookOutboxRepository webhookOutboxRepository;
+    private final RetryBackoffPolicy retryBackoffPolicy;
 
     private static final int BATCH_SIZE = 50;
     private static final long LEASE_DURATION_MINUTES = 2;
 
-    public WebhookOutboxClaimService(WebhookOutboxRepository webhookOutboxRepository) {
+    public WebhookOutboxClaimService(WebhookOutboxRepository webhookOutboxRepository,
+            RetryBackoffPolicy retryBackoffPolicy) {
         this.webhookOutboxRepository = webhookOutboxRepository;
+        this.retryBackoffPolicy = retryBackoffPolicy;
     }
 
     @Transactional
@@ -55,6 +59,6 @@ public class WebhookOutboxClaimService {
                 .orElseThrow(() -> new IllegalStateException(
                         "Webhook outbox event not found: " + eventId));
 
-        event.markFailed(claimToken, error);
+        event.markFailed(claimToken, error, retryBackoffPolicy);
     }
 }

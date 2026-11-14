@@ -4,5 +4,6 @@ public enum WebhookOutboxStatus {
     PENDING,
     PROCESSING,
     PUBLISHED,
-    FAILED
+    FAILED,
+    DEAD
 }

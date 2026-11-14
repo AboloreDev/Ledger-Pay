@@ -1,5 +1,7 @@
 package com.abolore.ledger_pay.journal.repository;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,5 +14,7 @@ public interface JournalEntryRepository extends JpaRepository<JournalEntries, UU
     Optional<JournalEntries> findByReference(String reference);
 
     boolean existsBySourceTypeAndSourceEventId(String sourceType, UUID sourceEventId);
+
+    List<JournalEntries> findBySourceTypeAndSourceIdIn(String sourceType, Collection<UUID> sourceIds);
 
 }

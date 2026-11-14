@@ -223,6 +223,7 @@ public class Payment {
         requirePending();
         this.status = PaymentStatus.SUCCEEDED;
         this.updatedAt = Instant.now();
+        this.paidAt = Instant.now();
     }
 
     public void markFailed() {

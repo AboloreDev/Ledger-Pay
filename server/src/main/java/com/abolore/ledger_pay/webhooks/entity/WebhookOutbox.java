@@ -7,6 +7,8 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
+import com.abolore.ledger_pay.webhooks.security.RetryBackoffPolicy;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -70,6 +72,8 @@ public class WebhookOutbox {
 
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    public static final int MAX_ATTEMPTS = 8;
 
     @PrePersist
     protected void onCreate() {
@@ -214,11 +218,18 @@ public class WebhookOutbox {
         this.lastError = null;
     }
 
-    public void markFailed(UUID claimToken, String error) {
+    public void markFailed(UUID claimToken, String error, RetryBackoffPolicy retryPolicy) {
         verifyClaim(claimToken);
-
-        this.status = WebhookOutboxStatus.PENDING;
         this.lastError = error;
+
+        if (this.attemptCount >= MAX_ATTEMPTS) {
+            this.status = WebhookOutboxStatus.DEAD;
+            this.nextAttemptAt = Instant.now();
+        } else {
+            this.status = WebhookOutboxStatus.PENDING;
+            this.nextAttemptAt = Instant.now().plus(retryPolicy.calculateDelay(this.attemptCount));
+        }
+
         this.claimToken = null;
         this.leaseUntil = null;
     }

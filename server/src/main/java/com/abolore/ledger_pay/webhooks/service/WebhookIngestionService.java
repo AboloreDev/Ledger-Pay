@@ -1,17 +1,15 @@
 package com.abolore.ledger_pay.webhooks.service;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.abolore.ledger_pay.webhook_event_audit.service.WebhookEventAuditService;
-import com.abolore.ledger_pay.webhooks.entity.WebhookOutbox;
+import com.abolore.ledger_pay.webhook_event_audit.repository.WebhookEventAuditRepository;
+
 import com.abolore.ledger_pay.webhooks.repository.WebhookOutboxRepository;
 import com.abolore.ledger_pay.webhooks.security.PaystackWebhookPayloadValidator;
-
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 @Service
 public class WebhookIngestionService {
@@ -20,13 +18,17 @@ public class WebhookIngestionService {
 
     private final WebhookOutboxRepository webhookOutboxRepository;
     private final PaystackWebhookPayloadValidator payloadValidator;
-    private final WebhookEventAuditService webhookEventAuditService;
+
+    private final WebhookEventAuditRepository webhookEventAuditRepository;
 
     public WebhookIngestionService(WebhookOutboxRepository webhookOutboxRepository,
-            PaystackWebhookPayloadValidator payloadValidator, WebhookEventAuditService webhookEventAuditService) {
+            PaystackWebhookPayloadValidator payloadValidator,
+            WebhookEventAuditRepository webhookEventAuditRepository) {
         this.webhookOutboxRepository = webhookOutboxRepository;
         this.payloadValidator = payloadValidator;
-        this.webhookEventAuditService = webhookEventAuditService;
+
+        this.webhookEventAuditRepository = webhookEventAuditRepository;
+
     }
 
     @Transactional
@@ -44,13 +46,14 @@ public class WebhookIngestionService {
                 return;
             }
 
-            webhookOutboxRepository.insertIfAbsent(
+            webhookEventAuditRepository.insertIfAbsent(
                     UUID.randomUUID(),
                     PROVIDER,
-                    eventType,
                     deduplicationKey,
+                    eventType,
                     transactionReference,
-                    rawPayload);
+                    rawPayload,
+                    Instant.now());
 
             webhookOutboxRepository.insertIfAbsent(
                     UUID.randomUUID(),

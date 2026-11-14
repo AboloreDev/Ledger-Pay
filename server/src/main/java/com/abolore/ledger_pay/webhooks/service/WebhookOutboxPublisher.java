@@ -15,7 +15,7 @@ import com.abolore.ledger_pay.webhooks.kafka.WebhookKafkaProducer;
 @Service
 public class WebhookOutboxPublisher {
 
-    private static final Logger logger = LoggerFactory.getLogger(WebhookKafkaProducer.class);
+    private static final Logger logger = LoggerFactory.getLogger(WebhookOutboxPublisher.class);
     private final WebhookOutboxClaimService webhookOutboxClaimService;
     private final WebhookKafkaProducer webhookKafkaProducer;
 
@@ -48,11 +48,7 @@ public class WebhookOutboxPublisher {
 
             // Publish to Kafka
             try {
-                webhookKafkaProducer
-                        .sendMessageToConsumer(
-                                event.getDeduplicationKey(),
-                                event.getPayload())
-                        .join();
+                webhookKafkaProducer.sendMessageToConsumer(event.getDeduplicationKey(), event.getPayload()).join();
 
             } catch (RuntimeException exception) {
 
@@ -63,10 +59,7 @@ public class WebhookOutboxPublisher {
 
                 // Kafka publishing failed
                 try {
-                    webhookOutboxClaimService.markFailed(
-                            eventId,
-                            claimToken,
-                            cause.getMessage());
+                    webhookOutboxClaimService.markFailed(eventId, claimToken, cause.getMessage());
 
                 } catch (RuntimeException databaseException) {
                     logger.error(
