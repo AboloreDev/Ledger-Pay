@@ -80,6 +80,11 @@ public class Payment {
         private Instant paidAt;
         private boolean latePayment;
 
+        public Builder setId(UUID id) {
+            this.id = id;
+            return this;
+        }
+
         public Builder setReference(String reference) {
             this.reference = reference;
             return this;
@@ -152,6 +157,7 @@ public class Payment {
     }
 
     private Payment(Builder builder) {
+        this.id = builder.id;
         this.reference = builder.reference;
         this.amount = builder.amount;
         this.currency = builder.currency;

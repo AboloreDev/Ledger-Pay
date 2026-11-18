@@ -5,11 +5,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import org.springframework.stereotype.Service;
+
 import com.abolore.ledger_pay.payment.entity.Payment;
 import com.abolore.ledger_pay.payment.entity.PaymentStatus;
 import com.abolore.ledger_pay.reconciliation.entity.PaymentComparisonResult;
 import com.abolore.ledger_pay.reconciliation.entity.PaystackTransactionResponse;
 
+@Service
 public class PaymentComparisonService {
 
     public PaymentComparisonResult compare(PaystackTransactionResponse transactionResponse, Payment payment) {

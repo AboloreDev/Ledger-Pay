@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.springframework.stereotype.Service;
+
 import com.abolore.ledger_pay.payment.entity.Payment;
 import com.abolore.ledger_pay.reconciliation.entity.PaymentComparisonResult;
 import com.abolore.ledger_pay.reconciliation.entity.PaymentMatchingResult;
@@ -16,6 +18,7 @@ import com.abolore.ledger_pay.reconciliation.entity.PaymentMatchingSummary;
 import com.abolore.ledger_pay.reconciliation.entity.PaystackTransactionResponse;
 import com.abolore.ledger_pay.reconciliation.entity.ReconciliationRecordType;
 
+@Service
 public class PaymentMatchingService {
 
     private final PaystackTransactionFetchService paystackTransactionFetchService;
@@ -75,6 +78,7 @@ public class PaymentMatchingService {
                             List.of("MISSING_REFERENCE")));
 
                     unmatchedPaystackCount++;
+
                 }
                 continue;
             }
@@ -122,6 +126,7 @@ public class PaymentMatchingService {
             }
 
             Payment payment = internalMatches.get(0);
+
             pairedPaymentID.add(payment.getId());
 
             PaymentComparisonResult comparison = paymentComparisonService.compare(transaction, payment);

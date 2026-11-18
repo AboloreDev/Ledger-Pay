@@ -2,7 +2,6 @@ package com.abolore.ledger_pay.webhooks.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -21,7 +20,6 @@ import java.util.UUID;
         @Index(name = "idx_webhook_outbox_expired_lease", columnList = "lease_until")
 })
 
-@Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class WebhookOutbox {
 
@@ -238,6 +236,70 @@ public class WebhookOutbox {
         if (this.claimToken == null || !this.claimToken.equals(claimToken)) {
             throw new IllegalStateException("Invalid webhook outbox claim token");
         }
+    }
+
+    public static int getMaxAttempts() {
+        return MAX_ATTEMPTS;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public String getEventType() {
+        return eventType;
+    }
+
+    public String getDeduplicationKey() {
+        return deduplicationKey;
+    }
+
+    public String getTransactionReference() {
+        return transactionReference;
+    }
+
+    public String getPayload() {
+        return payload;
+    }
+
+    public WebhookOutboxStatus getStatus() {
+        return status;
+    }
+
+    public int getAttemptCount() {
+        return attemptCount;
+    }
+
+    public Instant getNextAttemptAt() {
+        return nextAttemptAt;
+    }
+
+    public UUID getClaimToken() {
+        return claimToken;
+    }
+
+    public Instant getLeaseUntil() {
+        return leaseUntil;
+    }
+
+    public Instant getPublishedAt() {
+        return publishedAt;
+    }
+
+    public String getLastError() {
+        return lastError;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
     }
 
 }

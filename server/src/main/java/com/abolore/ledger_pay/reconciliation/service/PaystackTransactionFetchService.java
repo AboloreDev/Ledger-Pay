@@ -4,11 +4,14 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.abolore.ledger_pay.reconciliation.entity.PaystackProperties;
 import com.abolore.ledger_pay.reconciliation.entity.PaystackTransactionClient;
 import com.abolore.ledger_pay.reconciliation.entity.PaystackTransactionListResponse;
 import com.abolore.ledger_pay.reconciliation.entity.PaystackTransactionResponse;
 
+@Service
 public class PaystackTransactionFetchService {
 
     private final PaystackProperties paystackProperties;

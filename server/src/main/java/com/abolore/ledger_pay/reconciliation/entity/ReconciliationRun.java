@@ -54,10 +54,30 @@ public class ReconciliationRun {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
+    @Column(name = "journals_checked", nullable = false)
+    private int journalsChecked;
+
+    @Column(name = "valid_journals", nullable = false)
+    private int validJournals;
+
+    @Column(name = "invalid_journals", nullable = false)
+    private int invalidJournals;
+
+    @Column(name = "failure_reason", columnDefinition = "TEXT")
+    private String failureReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "trigger_type", nullable = false, length = 20)
+    private ReconciliationTriggerType triggerType;
+
+    @Column(name = "initiated_by")
+    private String initiatedBy;
+
     protected ReconciliationRun() {
     }
 
-    public static ReconciliationRun create(String provider, Instant periodStart, Instant periodEnd) {
+    public static ReconciliationRun create(String provider, Instant periodStart, Instant periodEnd,
+            ReconciliationTriggerType reconciliationTriggerType, String initiatedBy) {
 
         if (periodStart == null || periodEnd == null || !periodStart.isBefore(periodEnd)) {
             throw new IllegalArgumentException(
@@ -76,6 +96,11 @@ public class ReconciliationRun {
         run.matchedCount = 0;
         run.discrepancyCount = 0;
         run.createdAt = Instant.now();
+        run.journalsChecked = 0;
+        run.validJournals = 0;
+        run.invalidJournals = 0;
+        run.triggerType = reconciliationTriggerType;
+        run.initiatedBy = initiatedBy;
 
         return run;
     }
@@ -91,7 +116,7 @@ public class ReconciliationRun {
     }
 
     public void complete(int providerTransactions, int internalPayments, int matched, int discrepancies,
-            boolean partial) {
+            int journalsChecked, int validJournals, int invalidJournals, boolean partial) {
 
         if (this.status != ReconciliationRunStatus.RUNNING) {
             throw new IllegalStateException(
@@ -103,6 +128,10 @@ public class ReconciliationRun {
         this.matchedCount = matched;
         this.discrepancyCount = discrepancies;
 
+        this.journalsChecked = journalsChecked;
+        this.validJournals = validJournals;
+        this.invalidJournals = invalidJournals;
+
         this.status = partial
                 ? ReconciliationRunStatus.PARTIAL
                 : ReconciliationRunStatus.COMPLETED;
@@ -110,13 +139,79 @@ public class ReconciliationRun {
         this.completedAt = Instant.now();
     }
 
-    public void fail() {
+    public void fail(String reason) {
         if (this.status != ReconciliationRunStatus.RUNNING) {
             throw new IllegalStateException(
                     "Only running reconciliation runs can fail");
         }
 
         this.status = ReconciliationRunStatus.FAILED;
+        this.failureReason = reason;
         this.completedAt = Instant.now();
     }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public Instant getPeriodStart() {
+        return periodStart;
+    }
+
+    public Instant getPeriodEnd() {
+        return periodEnd;
+    }
+
+    public ReconciliationRunStatus getStatus() {
+        return status;
+    }
+
+    public int getTotalProviderTransactions() {
+        return totalProviderTransactions;
+    }
+
+    public int getTotalInternalPayments() {
+        return totalInternalPayments;
+    }
+
+    public int getMatchedCount() {
+        return matchedCount;
+    }
+
+    public int getDiscrepancyCount() {
+        return discrepancyCount;
+    }
+
+    public Instant getStartedAt() {
+        return startedAt;
+    }
+
+    public Instant getCompletedAt() {
+        return completedAt;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public int getJournalsChecked() {
+        return journalsChecked;
+    }
+
+    public int getValidJournals() {
+        return validJournals;
+    }
+
+    public int getInvalidJournals() {
+        return invalidJournals;
+    }
+
+    public String getFailureReason() {
+        return failureReason;
+    }
+
 }

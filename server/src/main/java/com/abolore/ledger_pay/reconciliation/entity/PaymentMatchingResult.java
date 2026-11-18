@@ -4,5 +4,5 @@ import java.util.List;
 import java.util.UUID;
 
 public record PaymentMatchingResult(ReconciliationRecordType reconciliationRecordType, String reference,
-                UUID internalPaymentId, boolean matched, List<String> discrepancies) {
+        UUID internalPaymentId, boolean matched, List<String> discrepancies) {
 }
