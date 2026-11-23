@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -19,9 +18,9 @@ import java.util.Map;
 import java.util.UUID;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 
 import com.abolore.ledger_pay.payment.entity.Payment;
@@ -34,6 +33,7 @@ import com.abolore.ledger_pay.reconciliation.entity.ReconciliationRunStatus;
 import com.abolore.ledger_pay.reconciliation.entity.ReconciliationTriggerType;
 import com.abolore.ledger_pay.reconciliation.entity.TransactionReconciliationResult;
 import com.abolore.ledger_pay.reconciliation.repository.ReconciliationRunRepository;
+import com.abolore.ledger_pay.reconciliation.scheduler.ReconciliationRunStarter;
 
 @ExtendWith(MockitoExtension.class)
 class TransactionReconciliationServiceTest {
@@ -55,6 +55,30 @@ class TransactionReconciliationServiceTest {
 
         @Mock
         private ReconciliationRunRepository runRepository;
+
+        @Mock
+        private ReconciliationRunStarter reconciliationRunStarter;
+
+        private ReconciliationRun runningRun;
+
+        @BeforeEach
+        void setUp() {
+                runningRun = ReconciliationRun.create(
+                                "PAYSTACK",
+                                Instant.parse("2026-11-01T00:00:00Z"),
+                                Instant.parse("2026-11-02T00:00:00Z"),
+                                ReconciliationTriggerType.MANUAL,
+                                "TEST_USER");
+
+                runningRun.start();
+
+                when(reconciliationRunStarter.startRun(
+                                any(),
+                                any(Instant.class),
+                                any(Instant.class),
+                                any(ReconciliationTriggerType.class),
+                                any())).thenReturn(runningRun);
+        }
 
         @Test
         void shouldReconcilePaymentAndValidJournal() {
@@ -296,13 +320,17 @@ class TransactionReconciliationServiceTest {
                 assertEquals(1, result.validJournalCount());
                 assertEquals(0, result.invalidJournalCount());
 
-                ArgumentCaptor<ReconciliationRun> captor = ArgumentCaptor.forClass(ReconciliationRun.class);
+                verify(reconciliationRunStarter).startRun(
+                                "PAYSTACK",
+                                start,
+                                end,
+                                triggerType,
+                                initiatedBy);
 
-                verify(runRepository, times(2)).save(captor.capture());
+                assertEquals(ReconciliationRunStatus.RUNNING, runningRun.getStatus());
 
-                ReconciliationRun savedRun = captor.getValue();
+                verify(persistenceService).persistResultToDB(any(), eq(result));
 
-                assertEquals(ReconciliationRunStatus.RUNNING, savedRun.getStatus());
                 verify(persistenceService).persistResultToDB(any(ReconciliationRun.class), eq(result));
         }
 
@@ -371,14 +399,10 @@ class TransactionReconciliationServiceTest {
                 assertThrows(RuntimeException.class,
                                 () -> transactionReconciliationService.reconcile(start, end, triggerType, initiatedBy));
 
-                ArgumentCaptor<ReconciliationRun> captor = ArgumentCaptor.forClass(ReconciliationRun.class);
+                verify(runRepository).save(any(ReconciliationRun.class));
 
-                verify(runRepository, times(3)).save(captor.capture());
-
-                ReconciliationRun failedRun = captor.getValue();
-
-                assertEquals(ReconciliationRunStatus.FAILED, failedRun.getStatus());
-                assertEquals("Paystack API unavailable", failedRun.getFailureReason());
+                assertEquals(ReconciliationRunStatus.FAILED, runningRun.getStatus());
+                assertEquals("Paystack API unavailable", runningRun.getFailureReason());
 
                 verify(persistenceService, never())
                                 .persistResultToDB(any(), any());

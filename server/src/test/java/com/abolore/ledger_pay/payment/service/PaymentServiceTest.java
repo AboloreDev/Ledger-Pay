@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.abolore.ledger_pay.common.exceptions.DomainException;
 import com.abolore.ledger_pay.journal.entity.JournalEntryRequest;
 import com.abolore.ledger_pay.journal.entity.JournalLineRequest;
 import com.abolore.ledger_pay.journal.entity.JournalSides;
@@ -30,8 +31,6 @@ import com.abolore.ledger_pay.outbox.repository.OutboxEventRepository;
 import com.abolore.ledger_pay.payment.dto.PaymentCreationResult;
 import com.abolore.ledger_pay.payment.entity.Payment;
 import com.abolore.ledger_pay.payment.entity.PaymentStatus;
-import com.abolore.ledger_pay.payment.exceptions.DuplicatePaymentException;
-import com.abolore.ledger_pay.payment.exceptions.PaymentNotFoundExceptions;
 import com.abolore.ledger_pay.payment.provider.PaymentProvider;
 import com.abolore.ledger_pay.payment.repository.PaymentRepository;
 
@@ -156,7 +155,7 @@ class PaymentServiceTest {
                                 .thenReturn(true);
 
                 assertThrows(
-                                DuplicatePaymentException.class,
+                                DomainException.class,
                                 () -> paymentService.createPayment(
                                                 "PAY-TEST-001",
                                                 new BigDecimal("5000.00"),
@@ -172,7 +171,7 @@ class PaymentServiceTest {
                                 .thenReturn(Optional.empty());
 
                 assertThrows(
-                                PaymentNotFoundExceptions.class,
+                                DomainException.class,
                                 () -> paymentService.markPaymentSucceeded(paymentId));
 
                 verifyNoInteractions(journalPostingService);

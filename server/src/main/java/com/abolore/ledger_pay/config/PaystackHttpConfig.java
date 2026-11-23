@@ -15,10 +15,11 @@ public class PaystackHttpConfig {
 
     @Bean
     public RestClient paystackRestClient(PaystackProperties properties) {
-
         return RestClient.builder()
-                .baseUrl(properties.apiBaseUrl())
-                .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer " + properties.apiSecretKey())
+                .baseUrl(properties.api().baseUrl())
+                .defaultHeader(
+                        HttpHeaders.AUTHORIZATION,
+                        "Bearer " + properties.api().secretKey())
                 .defaultHeader(HttpHeaders.ACCEPT, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }

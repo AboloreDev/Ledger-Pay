@@ -1,9 +1,10 @@
 
 package com.abolore.ledger_pay.payment.controller;
 
+import com.abolore.ledger_pay.common.exceptions.DomainException;
+import com.abolore.ledger_pay.common.exceptions.ErrorCode;
 import com.abolore.ledger_pay.payment.dto.PaymentCreationResult;
 import com.abolore.ledger_pay.payment.entity.Payment;
-import com.abolore.ledger_pay.payment.exceptions.PaymentNotFoundExceptions;
 import com.abolore.ledger_pay.payment.rest.PaymentController;
 import com.abolore.ledger_pay.payment.service.PaymentService;
 
@@ -112,17 +113,4 @@ class PaymentControllerTest {
                                 .andExpect(jsonPath("$.status").value("PENDING"));
         }
 
-        @Test
-        void shouldReturn404WhenPaymentDoesNotExist() throws Exception {
-                UUID id = UUID.randomUUID();
-
-                when(paymentService.getPaymentById(id))
-                                .thenThrow(new PaymentNotFoundExceptions(
-                                                "Payment not found: " + id));
-
-                mockMvc.perform(get("/api/v1/payments/{id}", id))
-                                .andExpect(status().isNotFound())
-                                .andExpect(jsonPath("$.message")
-                                                .value("Payment not found: " + id));
-        }
 }

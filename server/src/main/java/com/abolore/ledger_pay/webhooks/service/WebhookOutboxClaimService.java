@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.abolore.ledger_pay.common.exceptions.DomainException;
+import com.abolore.ledger_pay.common.exceptions.ErrorCode;
 import com.abolore.ledger_pay.webhooks.entity.WebhookOutbox;
 import com.abolore.ledger_pay.webhooks.repository.WebhookOutboxRepository;
 import com.abolore.ledger_pay.webhooks.security.RetryBackoffPolicy;
@@ -46,7 +48,7 @@ public class WebhookOutboxClaimService {
     public void markPublished(UUID eventId, UUID claimToken) {
 
         WebhookOutbox event = webhookOutboxRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalStateException(
+                .orElseThrow(() -> DomainException.of(ErrorCode.WEBHOOK_EVENT_NOT_FOUND,
                         "Webhook outbox event not found: " + eventId));
 
         event.markPublished(claimToken);
@@ -56,7 +58,7 @@ public class WebhookOutboxClaimService {
     public void markFailed(UUID eventId, UUID claimToken, String error) {
 
         WebhookOutbox event = webhookOutboxRepository.findById(eventId)
-                .orElseThrow(() -> new IllegalStateException(
+                .orElseThrow(() -> DomainException.of(ErrorCode.WEBHOOK_EVENT_NOT_FOUND,
                         "Webhook outbox event not found: " + eventId));
 
         event.markFailed(claimToken, error, retryBackoffPolicy);

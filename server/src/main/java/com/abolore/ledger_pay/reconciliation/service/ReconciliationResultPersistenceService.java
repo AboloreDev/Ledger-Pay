@@ -3,6 +3,8 @@ package com.abolore.ledger_pay.reconciliation.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.stereotype.Service;
+
 import com.abolore.ledger_pay.reconciliation.entity.JournalReconcliationResult;
 import com.abolore.ledger_pay.reconciliation.entity.PaymentMatchingResult;
 import com.abolore.ledger_pay.reconciliation.entity.PaymentMatchingSummary;
@@ -17,6 +19,7 @@ import com.abolore.ledger_pay.reconciliation.repository.ReconciliationRunReposit
 import jakarta.transaction.Transactional;
 
 // Persist reconciliation in the db
+@Service
 public class ReconciliationResultPersistenceService {
 
     private final ReconciliationResultFactory reconciliationResultFactory;
@@ -63,7 +66,7 @@ public class ReconciliationResultPersistenceService {
             reconciliationResults.add(result);
         }
 
-        reconciliationResultRepository.saveAll(reconciliationResults);
+        reconciliationResultRepository.saveAllAndFlush(reconciliationResults);
 
         // Calculate total discrepant records
         PaymentMatchingSummary matches = transactionReconciliationResult.paymentMatchingSummary();

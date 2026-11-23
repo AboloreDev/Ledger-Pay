@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abolore.ledger_pay.common.exceptions.DomainException;
+import com.abolore.ledger_pay.common.exceptions.ErrorCode;
 import com.abolore.ledger_pay.journal.entity.JournalEntryRequest;
 import com.abolore.ledger_pay.journal.entity.JournalLineRequest;
 import com.abolore.ledger_pay.journal.entity.JournalSides;
@@ -21,8 +23,6 @@ import com.abolore.ledger_pay.outbox.entity.PaymentInitiationPayload;
 import com.abolore.ledger_pay.outbox.repository.OutboxEventRepository;
 import com.abolore.ledger_pay.payment.dto.PaymentCreationResult;
 import com.abolore.ledger_pay.payment.entity.Payment;
-import com.abolore.ledger_pay.payment.exceptions.DuplicatePaymentException;
-import com.abolore.ledger_pay.payment.exceptions.PaymentNotFoundExceptions;
 import com.abolore.ledger_pay.payment.provider.PaymentProvider;
 import com.abolore.ledger_pay.payment.repository.PaymentRepository;
 
@@ -58,7 +58,7 @@ public class PaymentService {
                         String customerEmail) {
 
                 if (paymentRepository.existsByReference(reference)) {
-                        throw new DuplicatePaymentException(
+                        throw DomainException.of(ErrorCode.DUPLICATE_PAYMENT,
                                         "Payment reference already exists");
                 }
 
@@ -91,21 +91,21 @@ public class PaymentService {
         @Transactional(readOnly = true)
         public Payment getPaymentById(UUID id) {
                 return paymentRepository.findById(id)
-                                .orElseThrow(() -> new PaymentNotFoundExceptions(
+                                .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,
                                                 "Payment not found: " + id));
         }
 
         @Transactional(readOnly = true)
         public Payment getPaymentByReference(String reference) {
                 return paymentRepository.findByReference(reference)
-                                .orElseThrow(() -> new PaymentNotFoundExceptions(
+                                .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,
                                                 "Payment not found: " + reference));
         }
 
         @Transactional
         public Payment markPaymentSucceeded(UUID id) {
                 Payment payment = paymentRepository.findById(id)
-                                .orElseThrow(() -> new PaymentNotFoundExceptions(
+                                .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,
                                                 "Payment not found: " + id));
 
                 // Reject invalid state transitions before posting anything.
@@ -127,7 +127,7 @@ public class PaymentService {
         @Transactional
         public Payment markPaymentFailed(UUID id) {
                 Payment payment = paymentRepository.findById(id)
-                                .orElseThrow(() -> new PaymentNotFoundExceptions(
+                                .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,
                                                 "Payment not found: " + id));
 
                 payment.markFailed();

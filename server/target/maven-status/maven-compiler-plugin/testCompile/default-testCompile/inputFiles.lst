@@ -3,6 +3,8 @@
 /Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/payment/controller/PaymentControllerTest.java
 /Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/payment/provider/paystack/PaystackPaymentProviderTest.java
 /Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/payment/service/PaymentServiceTest.java
+/Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/reconciliation/scheduler/ReconciliationRunStarterTest.java
+/Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/reconciliation/scheduler/TransactionReconciliationSchedulerTest.java
 /Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/reconciliation/service/JournalReconciliationServiceTest.java
 /Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/reconciliation/service/ReconciliationResultPersistenceServiceTest.java
 /Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/reconciliation/service/TransactionReconciliationServiceTest.java

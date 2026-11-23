@@ -6,12 +6,13 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 
+import com.abolore.ledger_pay.common.exceptions.DomainException;
+import com.abolore.ledger_pay.common.exceptions.ErrorCode;
 import com.abolore.ledger_pay.journal.entity.JournalEntries;
 import com.abolore.ledger_pay.journal.entity.JournalEntryRequest;
 import com.abolore.ledger_pay.journal.entity.JournalLineRequest;
 import com.abolore.ledger_pay.journal.entity.JournalLines;
 import com.abolore.ledger_pay.journal.entity.JournalSides;
-import com.abolore.ledger_pay.journal.exceptions.DuplicateSourceEventException;
 import com.abolore.ledger_pay.journal.repository.JournalEntryRepository;
 import com.abolore.ledger_pay.journal.repository.JournalLineRepository;
 import com.abolore.ledger_pay.ledger.entity.LedgerAccount;
@@ -46,7 +47,7 @@ public class JournalPostingService {
                 || entryRequest.sourceType().isBlank()
                 || entryRequest.sourceId() == null
                 || entryRequest.sourceEventId() == null) {
-            throw new IllegalArgumentException(
+            throw DomainException.of(ErrorCode.JOURNAL_BAD_REQUEST,
                     "Journal entry Request fields must be provided.");
         }
 
@@ -54,7 +55,7 @@ public class JournalPostingService {
                 entryRequest.sourceType(), entryRequest.sourceEventId());
 
         if (alreadyPosted) {
-            throw new DuplicateSourceEventException(
+            throw DomainException.of(ErrorCode.DUPLICATE_SOURCE_POSTING,
                     "This source event has already been posted.");
         }
 
@@ -67,7 +68,7 @@ public class JournalPostingService {
         List<JournalLineRequest> requestLines = entryRequest.lines();
 
         if (requestLines == null || requestLines.size() < 2) {
-            throw new IllegalArgumentException(
+            throw DomainException.of(ErrorCode.UNBALANCED_JOURNAL_ENTRY,
                     "A journal entry must contain at least two lines.");
         }
 
@@ -78,28 +79,28 @@ public class JournalPostingService {
                     || line.amount() == null
                     || line.currency() == null
                     || !line.currency().matches("[A-Z]{3}")) {
-                throw new IllegalArgumentException(
+                throw DomainException.of(ErrorCode.JOURNAL_BAD_REQUEST,
                         "Each line must have a valid account, side, amount and currency.");
             }
 
             if (line.amount().signum() <= 0
                     || line.amount().stripTrailingZeros().scale() > 2) {
-                throw new IllegalArgumentException(
+                throw DomainException.of(ErrorCode.JOURNAL_BAD_REQUEST,
                         "Amount must be positive and have at most two decimal places.");
             }
 
             LedgerAccount account = ledgerAccountRepository
                     .findById(line.ledgerAccountId())
-                    .orElseThrow(() -> new IllegalArgumentException(
+                    .orElseThrow(() -> DomainException.of(ErrorCode.LEDGER_NOT_FOUND,
                             "Ledger account not found: " + line.ledgerAccountId()));
 
             if (account.getStatus() != LedgerAccountStatus.ACTIVE) {
-                throw new IllegalArgumentException(
+                throw DomainException.of(ErrorCode.JOURNAL_BAD_REQUEST,
                         "Cannot post to an inactive ledger account.");
             }
 
             if (!account.getCurrency().equals(line.currency())) {
-                throw new IllegalArgumentException(
+                throw DomainException.of(ErrorCode.JOURNAL_BAD_REQUEST,
                         "Journal line currency does not match the account currency.");
             }
 
@@ -114,7 +115,7 @@ public class JournalPostingService {
         }
 
         if (totalDebits.compareTo(totalCredits) != 0) {
-            throw new IllegalArgumentException(
+            throw DomainException.of(ErrorCode.UNBALANCED_JOURNAL_ENTRY,
                     "Journal entry is unbalanced. Debits must equal credits.");
         }
 

@@ -6,6 +6,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abolore.ledger_pay.common.exceptions.DomainException;
+import com.abolore.ledger_pay.common.exceptions.ErrorCode;
 import com.abolore.ledger_pay.webhook_event_audit.entity.WebhookEventAudit;
 import com.abolore.ledger_pay.webhook_event_audit.repository.WebhookEventAuditRepository;
 
@@ -48,7 +50,7 @@ public class WebhookEventAuditService {
 
         return auditRepository
                 .findByProviderAndDeduplicationKey(provider, deduplicationKey)
-                .orElseThrow(() -> new IllegalStateException(
+                .orElseThrow(() -> DomainException.of(ErrorCode.WEBHOOK_EVENT_NOT_FOUND,
                         "Webhook audit record not found: " + deduplicationKey));
     }
 

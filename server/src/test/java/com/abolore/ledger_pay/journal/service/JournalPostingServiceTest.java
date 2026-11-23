@@ -24,12 +24,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
 
+import com.abolore.ledger_pay.common.exceptions.DomainException;
 import com.abolore.ledger_pay.journal.entity.JournalEntries;
 import com.abolore.ledger_pay.journal.entity.JournalEntryRequest;
 import com.abolore.ledger_pay.journal.entity.JournalLineRequest;
 import com.abolore.ledger_pay.journal.entity.JournalLines;
 import com.abolore.ledger_pay.journal.entity.JournalSides;
-import com.abolore.ledger_pay.journal.exceptions.DuplicateSourceEventException;
 import com.abolore.ledger_pay.journal.repository.JournalEntryRepository;
 import com.abolore.ledger_pay.journal.repository.JournalLineRepository;
 import com.abolore.ledger_pay.ledger.entity.LedgerAccount;
@@ -72,7 +72,7 @@ public class JournalPostingServiceTest {
                 JournalEntryRequest request = requestWithLines(unBalancedEntryLines(debitAccountId, creditAccountId));
 
                 assertThrows(
-                                IllegalArgumentException.class,
+                                DomainException.class,
                                 () -> journalPostingService.postJournalEntry(request));
 
                 verify(journalEntryRepository, never()).save(any());
@@ -127,7 +127,7 @@ public class JournalPostingServiceTest {
                                 .thenReturn(true);
 
                 assertThrows(
-                                DuplicateSourceEventException.class,
+                                DomainException.class,
                                 () -> journalPostingService.postJournalEntry(request));
 
                 verifyNoJournalWrites();
@@ -148,7 +148,7 @@ public class JournalPostingServiceTest {
                                 balancedEntryLines(missingAccountId, generateRandomUUID()));
 
                 assertThrows(
-                                IllegalArgumentException.class,
+                                DomainException.class,
                                 () -> journalPostingService.postJournalEntry(request));
 
                 verifyNoJournalWrites();
@@ -170,7 +170,7 @@ public class JournalPostingServiceTest {
                                 balancedEntryLines(inactiveAccountId, generateRandomUUID()));
 
                 assertThrows(
-                                IllegalArgumentException.class,
+                                DomainException.class,
                                 () -> journalPostingService.postJournalEntry(request));
 
                 verifyNoJournalWrites();
@@ -199,7 +199,7 @@ public class JournalPostingServiceTest {
                                                                 new BigDecimal("100.00"))));
 
                 assertThrows(
-                                IllegalArgumentException.class,
+                                DomainException.class,
                                 () -> journalPostingService.postJournalEntry(request));
 
                 verifyNoJournalWrites();
@@ -223,7 +223,7 @@ public class JournalPostingServiceTest {
                                                 new BigDecimal("100.00"))));
 
                 assertThrows(
-                                IllegalArgumentException.class,
+                                DomainException.class,
                                 () -> journalPostingService.postJournalEntry(request));
 
                 verifyNoJournalWrites();
@@ -248,7 +248,7 @@ public class JournalPostingServiceTest {
                                                                 new BigDecimal("100.00"))));
 
                 assertThrows(
-                                IllegalArgumentException.class,
+                                DomainException.class,
                                 () -> journalPostingService.postJournalEntry(request));
 
                 verifyNoJournalWrites();

@@ -26,7 +26,7 @@ public class WebhookOutboxPublisher {
         this.webhookKafkaProducer = webhookKafkaProducer;
     }
 
-    @Scheduled(fixedDelayString = "${outbox.poll-interval-ms:1000}")
+    @Scheduled(fixedDelayString = "${outbox.poll-interval-ms:10000}")
     public void publishPendingEvents() {
 
         List<WebhookOutbox> events = webhookOutboxClaimService.claimPendingEvents();

@@ -4,7 +4,8 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-import com.abolore.ledger_pay.payment.exceptions.InvalidPaymentException;
+import com.abolore.ledger_pay.common.exceptions.DomainException;
+import com.abolore.ledger_pay.common.exceptions.ErrorCode;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -132,22 +133,22 @@ public class Payment {
 
         public Payment build() {
             if (reference == null || reference.isBlank()) {
-                throw new InvalidPaymentException("Payment reference cannot be empty");
+                throw DomainException.of(ErrorCode.INVALID_PAYMENT, "Payment reference cannot be empty");
             }
 
             if (amount == null || amount.signum() <= 0) {
-                throw new InvalidPaymentException(
+                throw DomainException.of(ErrorCode.INVALID_PAYMENT,
                         "Payment amount must be a positive value");
             }
 
             if (amount.scale() > 2) {
-                throw new InvalidPaymentException(
+                throw DomainException.of(ErrorCode.INVALID_PAYMENT,
                         "Payment amount cannot have more than 2 decimal places");
             }
 
             if (currency == null
                     || !currency.matches("[A-Z]{3}")) {
-                throw new InvalidPaymentException(
+                throw DomainException.of(ErrorCode.INVALID_PAYMENT,
                         "Currency must be a 3-letter uppercase code");
             }
 
@@ -240,7 +241,7 @@ public class Payment {
 
     private void requirePending() {
         if (this.status != PaymentStatus.PENDING) {
-            throw new InvalidPaymentException(
+            throw DomainException.of(ErrorCode.INVALID_PAYMENT,
                     "Only pending payments can change outcome. Current status: "
                             + this.status);
         }

@@ -1,11 +1,13 @@
 package com.abolore.ledger_pay.outbox.service;
 
+import com.abolore.ledger_pay.common.exceptions.DomainException;
+import com.abolore.ledger_pay.common.exceptions.ErrorCode;
 import com.abolore.ledger_pay.outbox.entity.OutboxEvent;
 import com.abolore.ledger_pay.outbox.entity.OutboxEventStatus;
 import com.abolore.ledger_pay.outbox.repository.OutboxEventRepository;
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,7 +36,7 @@ public class OutboxEventClaimService {
         return outboxEventRepository.findNextEventIdToClaim(now)
                 .map(eventId -> {
                     OutboxEvent event = outboxEventRepository.findById(eventId)
-                            .orElseThrow(() -> new IllegalStateException(
+                            .orElseThrow(() -> DomainException.of(ErrorCode.OUTBOX_EVENT_NOT_FOUND,
                                     "Claimed outbox event was not found: " + eventId));
 
                     event.setStatus(OutboxEventStatus.PROCESSING);

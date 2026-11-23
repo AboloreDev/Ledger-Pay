@@ -73,34 +73,171 @@ public class ReconciliationRun {
     @Column(name = "initiated_by")
     private String initiatedBy;
 
-    protected ReconciliationRun() {
+    public static class Builder {
+        private UUID id;
+        private String provider;
+        private Instant periodStart;
+        private Instant periodEnd;
+        private ReconciliationRunStatus status;
+        private int totalProviderTransactions;
+        private int totalInternalPayments;
+        private int matchedCount;
+        private int discrepancyCount;
+        private Instant startedAt;
+        private Instant completedAt;
+        private Instant createdAt;
+        private int journalsChecked;
+        private int validJournals;
+        private int invalidJournals;
+        private String failureReason;
+        private ReconciliationTriggerType triggerType;
+        private String initiatedBy;
+
+        public ReconciliationRun build() {
+            return new ReconciliationRun(this);
+        }
+
+        public Builder setId(UUID id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder setProvider(String provider) {
+            this.provider = provider;
+            return this;
+        }
+
+        public Builder setPeriodStart(Instant periodStart) {
+            this.periodStart = periodStart;
+            return this;
+        }
+
+        public Builder setPeriodEnd(Instant periodEnd) {
+            this.periodEnd = periodEnd;
+            return this;
+        }
+
+        public Builder setStatus(ReconciliationRunStatus status) {
+            this.status = status;
+            return this;
+        }
+
+        public Builder setTotalProviderTransactions(int totalProviderTransactions) {
+            this.totalProviderTransactions = totalProviderTransactions;
+            return this;
+        }
+
+        public Builder setTotalInternalPayments(int totalInternalPayments) {
+            this.totalInternalPayments = totalInternalPayments;
+            return this;
+        }
+
+        public Builder setMatchedCount(int matchedCount) {
+            this.matchedCount = matchedCount;
+            return this;
+        }
+
+        public Builder setDiscrepancyCount(int discrepancyCount) {
+            this.discrepancyCount = discrepancyCount;
+            return this;
+        }
+
+        public Builder setStartedAt(Instant startedAt) {
+            this.startedAt = startedAt;
+            return this;
+        }
+
+        public Builder setCompletedAt(Instant completedAt) {
+            this.completedAt = completedAt;
+            return this;
+        }
+
+        public Builder setCreatedAt(Instant createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public Builder setJournalsChecked(int journalsChecked) {
+            this.journalsChecked = journalsChecked;
+            return this;
+        }
+
+        public Builder setValidJournals(int validJournals) {
+            this.validJournals = validJournals;
+            return this;
+        }
+
+        public Builder setInvalidJournals(int invalidJournals) {
+            this.invalidJournals = invalidJournals;
+            return this;
+        }
+
+        public Builder setFailureReason(String failureReason) {
+            this.failureReason = failureReason;
+            return this;
+        }
+
+        public Builder setTriggerType(ReconciliationTriggerType triggerType) {
+            this.triggerType = triggerType;
+            return this;
+        }
+
+        public Builder setInitiatedBy(String initiatedBy) {
+            this.initiatedBy = initiatedBy;
+            return this;
+        }
     }
 
-    public static ReconciliationRun create(String provider, Instant periodStart, Instant periodEnd,
+    public ReconciliationRun() {
+    }
+
+    private ReconciliationRun(Builder builder) {
+        this.id = builder.id;
+        this.provider = builder.provider;
+        this.periodStart = builder.periodStart;
+        this.periodEnd = builder.periodEnd;
+        this.status = builder.status;
+        this.totalProviderTransactions = builder.totalProviderTransactions;
+        this.totalInternalPayments = builder.totalInternalPayments;
+        this.matchedCount = builder.matchedCount;
+        this.discrepancyCount = builder.discrepancyCount;
+        this.startedAt = builder.startedAt;
+        this.completedAt = builder.completedAt;
+        this.createdAt = builder.createdAt;
+        this.journalsChecked = builder.journalsChecked;
+        this.validJournals = builder.validJournals;
+        this.invalidJournals = builder.invalidJournals;
+        this.failureReason = builder.failureReason;
+        this.triggerType = builder.triggerType;
+        this.initiatedBy = builder.initiatedBy;
+    }
+
+    public static ReconciliationRun create(String provider, Instant periodStart,
+            Instant periodEnd,
             ReconciliationTriggerType reconciliationTriggerType, String initiatedBy) {
 
-        if (periodStart == null || periodEnd == null || !periodStart.isBefore(periodEnd)) {
+        if (periodStart == null || periodEnd == null ||
+                !periodStart.isBefore(periodEnd)) {
             throw new IllegalArgumentException(
                     "Invalid reconciliation period");
         }
 
-        ReconciliationRun run = new ReconciliationRun();
-
-        run.id = UUID.randomUUID();
-        run.provider = provider;
-        run.periodStart = periodStart;
-        run.periodEnd = periodEnd;
-        run.status = ReconciliationRunStatus.PENDING;
-        run.totalProviderTransactions = 0;
-        run.totalInternalPayments = 0;
-        run.matchedCount = 0;
-        run.discrepancyCount = 0;
-        run.createdAt = Instant.now();
-        run.journalsChecked = 0;
-        run.validJournals = 0;
-        run.invalidJournals = 0;
-        run.triggerType = reconciliationTriggerType;
-        run.initiatedBy = initiatedBy;
+        ReconciliationRun run = new ReconciliationRun.Builder()
+                .setProvider(provider)
+                .setPeriodStart(periodStart)
+                .setPeriodEnd(periodEnd)
+                .setStatus(ReconciliationRunStatus.PENDING)
+                .setTotalProviderTransactions(0)
+                .setTotalInternalPayments(0)
+                .setMatchedCount(0)
+                .setDiscrepancyCount(0)
+                .setCreatedAt(Instant.now())
+                .setJournalsChecked(0)
+                .setValidJournals(0)
+                .setInvalidJournals(0)
+                .setTriggerType(reconciliationTriggerType)
+                .setInitiatedBy(initiatedBy)
+                .build();
 
         return run;
     }
@@ -212,6 +349,14 @@ public class ReconciliationRun {
 
     public String getFailureReason() {
         return failureReason;
+    }
+
+    public ReconciliationTriggerType getTriggerType() {
+        return triggerType;
+    }
+
+    public String getInitiatedBy() {
+        return initiatedBy;
     }
 
 }

@@ -6,11 +6,12 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.abolore.ledger_pay.common.exceptions.DomainException;
+import com.abolore.ledger_pay.common.exceptions.ErrorCode;
 import com.abolore.ledger_pay.journal.entity.JournalEntryRequest;
 import com.abolore.ledger_pay.journal.service.JournalPostingService;
 import com.abolore.ledger_pay.payment.entity.Payment;
 import com.abolore.ledger_pay.payment.entity.PaymentStatus;
-import com.abolore.ledger_pay.payment.exceptions.PaymentNotFoundExceptions;
 import com.abolore.ledger_pay.payment.provider.PaymentVerificationResult;
 import com.abolore.ledger_pay.payment.repository.PaymentRepository;
 
@@ -33,7 +34,7 @@ public class PaymentFinalizationService {
     public void processVerification(UUID paymentId, PaymentVerificationResult result) {
 
         Payment payment = paymentRepository.findByIdForUpdate(paymentId)
-                .orElseThrow(() -> new PaymentNotFoundExceptions("Payment not found"));
+                .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND, "Payment not found"));
 
         // Another process may have completed it while we verified.
         if (payment.getStatus() != PaymentStatus.PENDING) {
@@ -49,14 +50,9 @@ public class PaymentFinalizationService {
         Instant paidAt = result.paidAt();
 
         if (paidAt == null) {
-            throw new IllegalStateException(
+            throw DomainException.of(ErrorCode.PROVIDER_DATA_INCONSISTENCY,
                     "Successful provider transaction has no paid_at timestamp");
         }
-
-        boolean latePayment = paidAt.isAfter(payment.getExpiresAt());
-
-        // payment.markSucceeded(paidAt, latePayment);
-
         journalPostingService.postJournalEntry(buildPaymentJournalRequest(payment));
 
         paymentRepository.save(payment);
@@ -66,7 +62,7 @@ public class PaymentFinalizationService {
     public void expirePayment(UUID paymentId, Instant now) {
 
         Payment payment = paymentRepository.findByIdForUpdate(paymentId)
-                .orElseThrow(() -> new PaymentNotFoundExceptions("Payment not found"));
+                .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND, "Payment not found"));
 
         if (payment.getStatus() != PaymentStatus.PENDING) {
             return;
@@ -85,11 +81,11 @@ public class PaymentFinalizationService {
     private void validateVerification(Payment payment, PaymentVerificationResult result) {
 
         if (!payment.getReference().equals(result.providerReference())) {
-            throw new IllegalStateException("Payment reference mismatch");
+            throw DomainException.of(ErrorCode.INVALID_PAYMENT, "Payment reference mismatch");
         }
 
         if (!payment.getCurrency().equalsIgnoreCase(result.currency())) {
-            throw new IllegalStateException("Payment currency mismatch");
+            throw DomainException.of(ErrorCode.INVALID_PAYMENT, "Payment currency mismatch");
         }
 
         long expectedAmount = payment.getAmount()
@@ -97,7 +93,7 @@ public class PaymentFinalizationService {
                 .longValueExact();
 
         if (expectedAmount != result.amountInMinorUnits()) {
-            throw new IllegalStateException("Payment amount mismatch");
+            throw DomainException.of(ErrorCode.INVALID_PAYMENT, "Payment amount mismatch");
         }
     }
 

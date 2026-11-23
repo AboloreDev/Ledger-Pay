@@ -37,153 +37,154 @@ import tools.jackson.core.JacksonException;
 @ExtendWith(MockitoExtension.class)
 public class ReconciliationResultPersistenceServiceTest {
 
-    @InjectMocks
-    private ReconciliationResultPersistenceService persistenceService;
+        @InjectMocks
+        private ReconciliationResultPersistenceService persistenceService;
 
-    @Mock
-    private ReconciliationResultRepository reconciliationResultRepository;
+        @Mock
+        private ReconciliationResultRepository reconciliationResultRepository;
 
-    @Mock
-    private ReconciliationRunRepository reconciliationRunRepository;
+        @Mock
+        private ReconciliationRunRepository reconciliationRunRepository;
 
-    @Mock
-    private ReconciliationResultFactory reconciliationResultFactory;
+        @Mock
+        private ReconciliationResultFactory reconciliationResultFactory;
 
-    @Test
-    void shouldPersistResultsAndCompleteReconciliationRun() {
+        @Test
+        void shouldPersistResultsAndCompleteReconciliationRun() {
 
-        ReconciliationRun run = ReconciliationRun.create(
-                "PAYSTACK",
-                Instant.parse("2026-11-01T00:00:00Z"),
-                Instant.parse("2026-11-02T00:00:00Z"),
-                ReconciliationTriggerType.MANUAL,
-                "test_user");
+                ReconciliationRun run = ReconciliationRun.create(
+                                "PAYSTACK",
+                                Instant.parse("2026-11-01T00:00:00Z"),
+                                Instant.parse("2026-11-02T00:00:00Z"),
+                                ReconciliationTriggerType.MANUAL,
+                                "test_user");
 
-        run.start();
+                run.start();
 
-        UUID paymentId = UUID.randomUUID();
+                UUID paymentId = UUID.randomUUID();
 
-        PaymentMatchingResult paymentResult = new PaymentMatchingResult(
-                ReconciliationRecordType.PAYSTACK_TRANSACTION,
-                "PAY-001",
-                paymentId,
-                false,
-                List.of("AMOUNT_MISMATCH"));
+                PaymentMatchingResult paymentResult = new PaymentMatchingResult(
+                                ReconciliationRecordType.PAYSTACK_TRANSACTION,
+                                "PAY-001",
+                                paymentId,
+                                false,
+                                List.of("AMOUNT_MISMATCH"));
 
-        PaymentMatchingSummary summary = new PaymentMatchingSummary(
-                1, 1, 0, 1, 0, 0,
-                List.of(paymentResult));
+                PaymentMatchingSummary summary = new PaymentMatchingSummary(
+                                1, 1, 0, 1, 0, 0,
+                                List.of(paymentResult));
 
-        JournalReconcliationResult journalResult = new JournalReconcliationResult(
-                paymentId,
-                false,
-                1,
-                List.of("UNBALANCED_JOURNAL"));
+                JournalReconcliationResult journalResult = new JournalReconcliationResult(
+                                paymentId,
+                                false,
+                                1,
+                                List.of("UNBALANCED_JOURNAL"));
 
-        TransactionReconciliationResult result = new TransactionReconciliationResult(
-                summary,
-                1,
-                0,
-                1,
-                List.of(journalResult));
+                TransactionReconciliationResult result = new TransactionReconciliationResult(
+                                summary,
+                                1,
+                                0,
+                                1,
+                                List.of(journalResult));
 
-        persistenceService.persistResultToDB(run, result);
+                persistenceService.persistResultToDB(run, result);
 
-        verify(reconciliationResultRepository).saveAll(anyList());
-        verify(reconciliationRunRepository).save(run);
+                verify(reconciliationResultRepository).saveAllAndFlush(anyList());
+                verify(reconciliationRunRepository).save(run);
 
-        assertEquals(ReconciliationRunStatus.COMPLETED, run.getStatus());
-        assertEquals(1, run.getTotalProviderTransactions());
-        assertEquals(1, run.getTotalInternalPayments());
-        assertEquals(0, run.getMatchedCount());
-        assertEquals(2, run.getDiscrepancyCount());
-        assertEquals(1, run.getJournalsChecked());
-        assertEquals(0, run.getValidJournals());
-        assertEquals(1, run.getInvalidJournals());
-    }
+                assertEquals(ReconciliationRunStatus.COMPLETED, run.getStatus());
+                assertEquals(1, run.getTotalProviderTransactions());
+                assertEquals(1, run.getTotalInternalPayments());
+                assertEquals(0, run.getMatchedCount());
+                assertEquals(2, run.getDiscrepancyCount());
+                assertEquals(1, run.getJournalsChecked());
+                assertEquals(0, run.getValidJournals());
+                assertEquals(1, run.getInvalidJournals());
+        }
 
-    // @Test
-    // void shouldNotCompleteRunWhenSavingResultsFails() {
+        // @Test
+        // void shouldNotCompleteRunWhenSavingResultsFails() {
 
-    // ReconciliationRun run = ReconciliationRun.create(
-    // "PAYSTACK",
-    // Instant.parse("2026-11-01T00:00:00Z"),
-    // Instant.parse("2026-11-02T00:00:00Z"));
+        // ReconciliationRun run = ReconciliationRun.create(
+        // "PAYSTACK",
+        // Instant.parse("2026-11-01T00:00:00Z"),
+        // Instant.parse("2026-11-02T00:00:00Z"));
 
-    // run.start();
+        // run.start();
 
-    // PaymentMatchingResult result1 = new PaymentMatchingResult(
-    // ReconciliationRecordType.PAYSTACK_TRANSACTION,
-    // "PAY-001",
-    // UUID.randomUUID(),
-    // false,
-    // List.of("AMOUNT_MISMATCH"));
+        // PaymentMatchingResult result1 = new PaymentMatchingResult(
+        // ReconciliationRecordType.PAYSTACK_TRANSACTION,
+        // "PAY-001",
+        // UUID.randomUUID(),
+        // false,
+        // List.of("AMOUNT_MISMATCH"));
 
-    // JournalReconcliationResult result2 = new JournalReconcliationResult(
-    // UUID.randomUUID(),
-    // false,
-    // 1,
-    // List.of("UNBALANCED_JOURNAL"));
+        // JournalReconcliationResult result2 = new JournalReconcliationResult(
+        // UUID.randomUUID(),
+        // false,
+        // 1,
+        // List.of("UNBALANCED_JOURNAL"));
 
-    // TransactionReconciliationResult result = new TransactionReconciliationResult(
-    // new PaymentMatchingSummary(1, 1, 0, 0, 0, 0, List.of(result1)),
-    // 1, 0, 0,
-    // List.of(result2));
+        // TransactionReconciliationResult result = new TransactionReconciliationResult(
+        // new PaymentMatchingSummary(1, 1, 0, 0, 0, 0, List.of(result1)),
+        // 1, 0, 0,
+        // List.of(result2));
 
-    // verify(reconciliationResultFactory, atLeastOnce())
-    // .createReconciliationResultThatConvertsJSOBDiscrepancyToString(
-    // any(), ReconciliationRecordType.PAYSTACK_TRANSACTION, "PAY-12345",
-    // UUID.randomUUID(), false,
-    // List.copyOf(result1.discrepancies()));
+        // verify(reconciliationResultFactory, atLeastOnce())
+        // .createReconciliationResultThatConvertsJSOBDiscrepancyToString(
+        // any(), ReconciliationRecordType.PAYSTACK_TRANSACTION, "PAY-12345",
+        // UUID.randomUUID(), false,
+        // List.copyOf(result1.discrepancies()));
 
-    // assertThrows(JacksonException.class,
-    // () -> persistenceService.persistResultToDB(run, result));
+        // assertThrows(JacksonException.class,
+        // () -> persistenceService.persistResultToDB(run, result));
 
-    // assertEquals(ReconciliationRunStatus.RUNNING, run.getStatus());
+        // assertEquals(ReconciliationRunStatus.RUNNING, run.getStatus());
 
-    // verify(reconciliationRunRepository, never()).save(run);
-    // }
+        // verify(reconciliationRunRepository, never()).save(run);
+        // }
 
-    @Test
-    void shouldCompleteRunWithZeroDiscrepancies() {
+        @Test
+        void shouldCompleteRunWithZeroDiscrepancies() {
 
-        ReconciliationRun run = ReconciliationRun.create(
-                "PAYSTACK",
-                Instant.parse("2026-11-01T00:00:00Z"),
-                Instant.parse("2026-11-02T00:00:00Z"),
-                ReconciliationTriggerType.MANUAL,
-                "test-user");
+                ReconciliationRun run = ReconciliationRun.create(
+                                "PAYSTACK",
+                                Instant.parse("2026-11-01T00:00:00Z"),
+                                Instant.parse("2026-11-02T00:00:00Z"),
+                                ReconciliationTriggerType.MANUAL,
+                                "test-user");
 
-        run.start();
+                run.start();
 
-        UUID paymentId = UUID.randomUUID();
+                UUID paymentId = UUID.randomUUID();
 
-        PaymentMatchingResult paymentResult = new PaymentMatchingResult(
-                ReconciliationRecordType.PAYSTACK_TRANSACTION,
-                "PAY-001",
-                paymentId,
-                true,
-                List.of());
+                PaymentMatchingResult paymentResult = new PaymentMatchingResult(
+                                ReconciliationRecordType.PAYSTACK_TRANSACTION,
+                                "PAY-001",
+                                paymentId,
+                                true,
+                                List.of());
 
-        PaymentMatchingSummary summary = new PaymentMatchingSummary(
-                1, 1, 1, 0, 0, 0,
-                List.of(paymentResult));
+                PaymentMatchingSummary summary = new PaymentMatchingSummary(
+                                1, 1, 1, 0, 0, 0,
+                                List.of(paymentResult));
 
-        JournalReconcliationResult journalResult = new JournalReconcliationResult(paymentId, true, 1, List.of());
+                JournalReconcliationResult journalResult = new JournalReconcliationResult(paymentId, true, 1,
+                                List.of());
 
-        TransactionReconciliationResult result = new TransactionReconciliationResult(
-                summary, 1, 1, 0, List.of(journalResult));
+                TransactionReconciliationResult result = new TransactionReconciliationResult(
+                                summary, 1, 1, 0, List.of(journalResult));
 
-        persistenceService.persistResultToDB(run, result);
+                persistenceService.persistResultToDB(run, result);
 
-        assertEquals(ReconciliationRunStatus.COMPLETED, run.getStatus());
-        assertEquals(1, run.getMatchedCount());
-        assertEquals(0, run.getDiscrepancyCount());
-        assertEquals(1, run.getJournalsChecked());
-        assertEquals(1, run.getValidJournals());
-        assertEquals(0, run.getInvalidJournals());
+                assertEquals(ReconciliationRunStatus.COMPLETED, run.getStatus());
+                assertEquals(1, run.getMatchedCount());
+                assertEquals(0, run.getDiscrepancyCount());
+                assertEquals(1, run.getJournalsChecked());
+                assertEquals(1, run.getValidJournals());
+                assertEquals(0, run.getInvalidJournals());
 
-        // verify(reconciliationResultFactory)(anyList());
-        verify(reconciliationRunRepository).save(run);
-    }
+                // verify(reconciliationResultFactory)(anyList());
+                verify(reconciliationRunRepository).save(run);
+        }
 }

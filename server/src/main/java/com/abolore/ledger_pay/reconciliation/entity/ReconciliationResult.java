@@ -1,7 +1,11 @@
 package com.abolore.ledger_pay.reconciliation.entity;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -40,8 +44,9 @@ public class ReconciliationResult {
     @Column(nullable = false)
     private boolean matched;
 
-    @Column(name = "discrepancies", columnDefinition = "jsonb")
-    private String discrepancies;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(columnDefinition = "jsonb")
+    private List<String> discrepancies;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
@@ -50,7 +55,7 @@ public class ReconciliationResult {
     }
 
     public static ReconciliationResult create(ReconciliationRun reconciliationRun, ReconciliationRecordType recordType,
-            String reference, UUID internalPaymentId, boolean matched, String discrepancies) {
+            String reference, UUID internalPaymentId, boolean matched, List<String> discrepancies) {
 
         ReconciliationResult result = new ReconciliationResult();
 

@@ -6,23 +6,15 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
 
 @Component
 public class ReconciliationResultFactory {
-
-    private final ObjectMapper objectMapper;
-
-    public ReconciliationResultFactory(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
 
     public ReconciliationResult createReconciliationResultThatConvertsJSOBDiscrepancyToString(ReconciliationRun run,
             ReconciliationRecordType recordType, String reference, UUID paymentId, boolean matched,
             List<String> discrepancies) {
 
         try {
-            String discrepancyJson = objectMapper.writeValueAsString(discrepancies);
 
             return ReconciliationResult.create(
                     run,
@@ -30,7 +22,7 @@ public class ReconciliationResultFactory {
                     reference,
                     paymentId,
                     matched,
-                    discrepancyJson);
+                    discrepancies);
 
         } catch (JacksonException e) {
             throw new IllegalStateException(

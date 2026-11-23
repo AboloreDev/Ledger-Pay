@@ -6,6 +6,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.abolore.ledger_pay.common.exceptions.DomainException;
+import com.abolore.ledger_pay.common.exceptions.ErrorCode;
 import com.abolore.ledger_pay.webhook_event_audit.repository.WebhookEventAuditRepository;
 
 import com.abolore.ledger_pay.webhooks.repository.WebhookOutboxRepository;
@@ -64,9 +66,8 @@ public class WebhookIngestionService {
                     rawPayload);
 
         } catch (Exception exception) {
-            throw new IllegalArgumentException(
-                    "Unable to process Paystack webhook payload",
-                    exception);
+            throw DomainException.of(ErrorCode.WEBHOOK_PROCESSING_FAILED,
+                    "Unable to process Paystack webhook payload: " + exception);
         }
     }
 }

@@ -4,9 +4,10 @@ import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
+import com.abolore.ledger_pay.common.exceptions.DomainException;
+import com.abolore.ledger_pay.common.exceptions.ErrorCode;
 import com.abolore.ledger_pay.payment.entity.Payment;
 import com.abolore.ledger_pay.payment.entity.PaymentStatus;
-import com.abolore.ledger_pay.payment.exceptions.PaymentNotFoundExceptions;
 import com.abolore.ledger_pay.payment.provider.PaymentProvider;
 import com.abolore.ledger_pay.payment.provider.PaymentVerificationResult;
 import com.abolore.ledger_pay.payment.repository.PaymentRepository;
@@ -30,7 +31,7 @@ public class PaymentReconciliationService {
 
         // Stage A: Read payment without acquiring a row lock.
         Payment payment = paymentRepository.findById(paymentId)
-                .orElseThrow(() -> new PaymentNotFoundExceptions("Payment not found"));
+                .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND, "Payment not found"));
 
         if (payment.getStatus() != PaymentStatus.PENDING) {
             return;

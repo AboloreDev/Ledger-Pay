@@ -18,6 +18,7 @@ import com.abolore.ledger_pay.reconciliation.entity.ReconciliationRun;
 import com.abolore.ledger_pay.reconciliation.entity.ReconciliationTriggerType;
 import com.abolore.ledger_pay.reconciliation.entity.TransactionReconciliationResult;
 import com.abolore.ledger_pay.reconciliation.repository.ReconciliationRunRepository;
+import com.abolore.ledger_pay.reconciliation.scheduler.ReconciliationRunStarter;
 
 @Service
 public class TransactionReconciliationService {
@@ -29,33 +30,31 @@ public class TransactionReconciliationService {
         private final JournalReconciliationService journalReconciliationService;
         private final ReconciliationRunRepository runRepository;
         private final ReconciliationResultPersistenceService persistenceService;
+        private final ReconciliationRunStarter reconciliationRunStarter;
 
         public TransactionReconciliationService(
                         PaymentMatchingService paymentMatchingService,
                         InternalPaymentFetchService internalPaymentFetchService,
                         JournalReconciliationService journalReconciliationService,
                         ReconciliationRunRepository runRepository,
-                        ReconciliationResultPersistenceService persistenceService) {
+                        ReconciliationResultPersistenceService persistenceService,
+                        ReconciliationRunStarter reconciliationRunStarter) {
 
                 this.paymentMatchingService = paymentMatchingService;
                 this.internalPaymentFetchService = internalPaymentFetchService;
                 this.journalReconciliationService = journalReconciliationService;
                 this.runRepository = runRepository;
                 this.persistenceService = persistenceService;
+                this.reconciliationRunStarter = reconciliationRunStarter;
         }
 
         public TransactionReconciliationResult reconcile(Instant periodStart, Instant periodEnd,
                         ReconciliationTriggerType reconciliationTriggerType, String initiatedBy) {
 
                 // Create the run in the db
-                ReconciliationRun run = ReconciliationRun.create(PROVIDER, periodStart, periodEnd,
-                                reconciliationTriggerType, initiatedBy);
-
-                runRepository.save(run);
-
-                // Update the status to running
-                run.start();
-                runRepository.save(run);
+                ReconciliationRun run = reconciliationRunStarter.startRun(PROVIDER, periodStart, periodEnd,
+                                reconciliationTriggerType,
+                                initiatedBy);
 
                 try {
                         // Match Paystack transactions against internal payments
