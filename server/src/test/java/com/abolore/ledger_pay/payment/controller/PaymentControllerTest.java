@@ -1,8 +1,6 @@
 
 package com.abolore.ledger_pay.payment.controller;
 
-import com.abolore.ledger_pay.common.exceptions.DomainException;
-import com.abolore.ledger_pay.common.exceptions.ErrorCode;
 import com.abolore.ledger_pay.payment.dto.PaymentCreationResult;
 import com.abolore.ledger_pay.payment.entity.Payment;
 import com.abolore.ledger_pay.payment.rest.PaymentController;
@@ -40,6 +38,7 @@ class PaymentControllerTest {
         @Test
         void shouldCreatePaymentAndReturn201() throws Exception {
                 UUID id = UUID.randomUUID();
+                UUID merchantId = UUID.randomUUID();
 
                 Payment payment = new Payment.Builder()
                                 .setReference("PAY-TEST-001")
@@ -54,6 +53,7 @@ class PaymentControllerTest {
                                 "https://example.com/checkout");
 
                 when(paymentService.createPayment(
+                                merchantId,
                                 "PAY-TEST-001",
                                 new BigDecimal("5000.00"),
                                 "NGN", "customer@example.com")).thenReturn(paymentCreationResult);

@@ -16,4 +16,5 @@ public interface MerchantApiKeyRepository extends JpaRepository<MerchantApiKey, 
             MerchantApiKeyStatus status);
 
     List<MerchantApiKey> findAllByMerchant_Id(UUID merchantId);
+
 }

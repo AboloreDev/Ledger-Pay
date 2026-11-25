@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,11 +20,14 @@ import com.abolore.ledger_pay.journal.entity.JournalEntryRequest;
 import com.abolore.ledger_pay.journal.entity.JournalLineRequest;
 import com.abolore.ledger_pay.journal.entity.JournalSides;
 import com.abolore.ledger_pay.journal.service.JournalPostingService;
+import com.abolore.ledger_pay.merchants.dto.MerchantPrincipal;
+import com.abolore.ledger_pay.merchants.entity.Merchant;
 import com.abolore.ledger_pay.outbox.OutboxEventFactory;
 import com.abolore.ledger_pay.outbox.entity.OutboxEvent;
 import com.abolore.ledger_pay.outbox.entity.PaymentInitiationPayload;
 import com.abolore.ledger_pay.outbox.repository.OutboxEventRepository;
 import com.abolore.ledger_pay.payment.dto.PaymentCreationResult;
+import com.abolore.ledger_pay.payment.dto.PaymentResponse;
 import com.abolore.ledger_pay.payment.entity.Payment;
 import com.abolore.ledger_pay.payment.provider.PaymentProvider;
 import com.abolore.ledger_pay.payment.repository.PaymentRepository;
@@ -54,13 +60,17 @@ public class PaymentService {
         }
 
         @Transactional
-        public PaymentCreationResult createPayment(String reference, BigDecimal amount, String currency,
+        public PaymentCreationResult createPayment(UUID merchantId, String reference, BigDecimal amount,
+                        String currency,
                         String customerEmail) {
 
                 if (paymentRepository.existsByReference(reference)) {
                         throw DomainException.of(ErrorCode.DUPLICATE_PAYMENT,
                                         "Payment reference already exists");
                 }
+
+                Merchant merchant = paymentRepository.findMerchantById(merchantId)
+                                .orElseThrow(() -> DomainException.of(ErrorCode.MERCHANT_NOT_FOUND, customerEmail));
 
                 Instant now = Instant.now();
                 Instant expiresAt = now.plus(Duration.ofMinutes(15));
@@ -70,6 +80,7 @@ public class PaymentService {
                                 .setAmount(amount)
                                 .setCurrency(currency)
                                 .setExpiresAt(expiresAt)
+                                .setMerchant(merchant)
                                 .build();
 
                 payment = paymentRepository.save(payment);
@@ -95,6 +106,14 @@ public class PaymentService {
                                                 "Payment not found: " + id));
         }
 
+        // Scoped to merchant
+        @Transactional(readOnly = true)
+        public Payment getPaymentById(UUID paymentId, UUID merchantId) {
+                return paymentRepository.findByIdAndMerchantId(paymentId, merchantId)
+                                .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,
+                                                "Payment not found for merchant: " + paymentId));
+        }
+
         @Transactional(readOnly = true)
         public Payment getPaymentByReference(String reference) {
                 return paymentRepository.findByReference(reference)
@@ -102,7 +121,30 @@ public class PaymentService {
                                                 "Payment not found: " + reference));
         }
 
-        @Transactional
+        // Scoped to merchant
+        @Transactional(readOnly = true)
+        public Payment getPaymentByReference(String reference, UUID merchantId) {
+                return paymentRepository.findByReferenceAndMerchant_Id(reference, merchantId)
+                                .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,
+                                                "Payment not found for merchant: " + reference));
+        }
+
+        // Return all merchant
+        @Transactional(readOnly = true)
+        public Page<PaymentResponse> getAllPaymentForMerchant(UUID merchantId, Pageable pageable) {
+
+                Page<Payment> payment = paymentRepository.findAllByMerchant_Id(merchantId, pageable);
+
+                return payment.map(PaymentResponse::from);
+        }
+
+        public Page<PaymentResponse> getAllPaymentForMerchant(Pageable pageable) {
+
+                Page<Payment> payment = paymentRepository.findAllByMerchant_Id(pageable);
+
+                return payment.map(PaymentResponse::from);
+        }
+
         public Payment markPaymentSucceeded(UUID id) {
                 Payment payment = paymentRepository.findById(id)
                                 .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,
@@ -124,7 +166,6 @@ public class PaymentService {
                 return paymentRepository.save(payment);
         }
 
-        @Transactional
         public Payment markPaymentFailed(UUID id) {
                 Payment payment = paymentRepository.findById(id)
                                 .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,

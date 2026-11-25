@@ -1,4 +1,12 @@
 -------------------------------------------------------------------------------
 Test set: com.abolore.ledger_pay.payment.service.PaymentServiceTest
 -------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.149 s -- in com.abolore.ledger_pay.payment.service.PaymentServiceTest
+Tests run: 6, Failures: 0, Errors: 1, Skipped: 0, Time elapsed: 0.162 s <<< FAILURE! -- in com.abolore.ledger_pay.payment.service.PaymentServiceTest
+com.abolore.ledger_pay.payment.service.PaymentServiceTest.shouldCreatePaymentWithPendingStatus -- Time elapsed: 0.032 s <<< ERROR!
+com.abolore.ledger_pay.common.exceptions.DomainException: customer@example.com
+	at com.abolore.ledger_pay.common.exceptions.DomainException.of(DomainException.java:18)
+	at com.abolore.ledger_pay.payment.service.PaymentService.lambda$0(PaymentService.java:73)
+	at java.base/java.util.Optional.orElseThrow(Optional.java:403)
+	at com.abolore.ledger_pay.payment.service.PaymentService.createPayment(PaymentService.java:73)
+	at com.abolore.ledger_pay.payment.service.PaymentServiceTest.shouldCreatePaymentWithPendingStatus(PaymentServiceTest.java:112)
+

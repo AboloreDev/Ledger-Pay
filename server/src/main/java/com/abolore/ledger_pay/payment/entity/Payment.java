@@ -6,14 +6,18 @@ import java.util.UUID;
 
 import com.abolore.ledger_pay.common.exceptions.DomainException;
 import com.abolore.ledger_pay.common.exceptions.ErrorCode;
+import com.abolore.ledger_pay.merchants.entity.Merchant;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 
@@ -64,6 +68,10 @@ public class Payment {
     @Column(name = "late_payment", nullable = false)
     private boolean latePayment = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "merchant_id", nullable = false)
+    private Merchant merchant;
+
     protected Payment() {
         // Required by JPA
     }
@@ -80,6 +88,7 @@ public class Payment {
         private Instant expiresAt;
         private Instant paidAt;
         private boolean latePayment;
+        private Merchant merchant;
 
         public Builder setId(UUID id) {
             this.id = id;
@@ -131,6 +140,11 @@ public class Payment {
             return this;
         }
 
+        public Builder setMerchant(Merchant merchant) {
+            this.merchant = merchant;
+            return this;
+        }
+
         public Payment build() {
             if (reference == null || reference.isBlank()) {
                 throw DomainException.of(ErrorCode.INVALID_PAYMENT, "Payment reference cannot be empty");
@@ -171,6 +185,7 @@ public class Payment {
         this.expiresAt = builder.expiresAt;
         this.paidAt = builder.paidAt;
         this.latePayment = builder.latePayment;
+        this.merchant = builder.merchant;
     }
 
     public UUID getId() {
@@ -225,6 +240,10 @@ public class Payment {
         return latePayment;
     }
 
+    public Merchant getMerchant() {
+        return merchant;
+    }
+
     // METHODS
     public void markSucceeded() {
         requirePending();
@@ -258,4 +277,5 @@ public class Payment {
     public void setCheckoutUrl(String checkoutUrl) {
         this.checkoutUrl = checkoutUrl;
     }
+
 }

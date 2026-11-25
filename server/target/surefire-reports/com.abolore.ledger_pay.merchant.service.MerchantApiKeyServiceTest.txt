@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.abolore.ledger_pay.merchant.service.MerchantApiKeyServiceTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.572 s -- in com.abolore.ledger_pay.merchant.service.MerchantApiKeyServiceTest

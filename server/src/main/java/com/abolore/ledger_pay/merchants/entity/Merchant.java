@@ -80,6 +80,16 @@ public class Merchant {
         this.createdAt = builder.createdAt;
     }
 
+    public static Merchant create(String name, String email) {
+        Merchant merchant = new Merchant.Builder()
+                .setName(name)
+                .setEmail(email)
+                .setStatus(MerchantStatus.ACTIVE)
+                .setCreatedAt(Instant.now())
+                .build();
+        return merchant;
+    }
+
     // Getters
     public UUID getId() {
         return id;

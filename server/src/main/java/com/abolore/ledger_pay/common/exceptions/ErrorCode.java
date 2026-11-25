@@ -43,6 +43,12 @@ public enum ErrorCode {
     ADMIN_BAD_REQUEST(HttpStatus.BAD_REQUEST, "Fields must be complete"),
     EMAIL_NOT_FOUND(HttpStatus.NOT_FOUND, "Email not found"),
 
+    // MERCHANT
+    MERCHANT_NOT_FOUND(HttpStatus.NOT_FOUND, "Merchant Not Found"),
+    MERCHANT_EXISTS(HttpStatus.CONFLICT, "Merchant already exists"),
+    MERCHANT_INVALID_API_KEY(HttpStatus.BAD_REQUEST, "Invalid API Key"),
+    INVALID_MERCHANT_STATUS(HttpStatus.BAD_GATEWAY, "Invalid Status"),
+
     // Hashing Error
     INCORRECT_HASHING_ALGORITHM(HttpStatus.FORBIDDEN, "SHA-256 algorithm unavailable");
 

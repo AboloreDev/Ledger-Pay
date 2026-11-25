@@ -9,6 +9,7 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.abolore.ledger_pay.auth.service.AdminUserDetailsService;
+import com.abolore.ledger_pay.merchant_keys.security.MerchantApiKeyAuthenticationProvider;
 
 @Configuration
 public class AuthenticationConfig {
@@ -30,4 +31,11 @@ public class AuthenticationConfig {
 
         return new ProviderManager(authenticationProvider);
     }
+
+    @Bean("merchantAuthenticationManager")
+    public AuthenticationManager merchantAuthenticationManager(MerchantApiKeyAuthenticationProvider provider) {
+
+        return new ProviderManager(provider);
+    }
+
 }

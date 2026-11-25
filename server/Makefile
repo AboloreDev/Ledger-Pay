@@ -17,11 +17,12 @@ test:
 	./mvnw test
 
 test-one:
-	./mvnw -Dtest=$(TEST) test
+	./mvnw test -Dtest=$(TEST) 
 
-# test-one:
-#   	@test -n "$(TEST)" || (echo "Usage: make test-one TEST=ClassName" && exit 1)
-#   	./mvnw -Dtest=$(TEST) test
+test-one:
+	@test -n "$(TEST)" || (echo "Usage: make test-one TEST=ClassName[#methodName]" && exit 1)
+	./mvnw test -Dtest="$(TEST)"
+
 
 package:
 	./mvnw clean package -DskipTests

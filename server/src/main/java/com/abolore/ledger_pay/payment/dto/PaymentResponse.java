@@ -21,9 +21,7 @@ public record PaymentResponse(
         return from(payment, null);
     }
 
-    public static PaymentResponse from(
-            Payment payment,
-            String checkoutUrl) {
+    public static PaymentResponse from(Payment payment, String checkoutUrl) {
 
         return new PaymentResponse(
                 payment.getId(),

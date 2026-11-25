@@ -1,5 +1,9 @@
 /Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/LedgerPayApplicationTests.java
 /Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/journal/service/JournalPostingServiceTest.java
+/Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/merchant/entity/MerchantTest.java
+/Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/merchant/service/MerchantApiKeyServiceTest.java
+/Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/merchant/service/MerchantAuthenticationFilterTest.java
+/Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/merchant/service/MerchantServiceTest.java
 /Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/payment/controller/PaymentControllerTest.java
 /Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/payment/provider/paystack/PaystackPaymentProviderTest.java
 /Users/mac/Desktop/ledger-pay/server/src/test/java/com/abolore/ledger_pay/payment/service/PaymentServiceTest.java

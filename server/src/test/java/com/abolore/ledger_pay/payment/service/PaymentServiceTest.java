@@ -84,6 +84,7 @@ class PaymentServiceTest {
         @Test
         void shouldCreatePaymentWithPendingStatus() {
                 String customerEmail = "customer@example.com";
+                UUID merchantId = UUID.randomUUID();
 
                 when(paymentRepository.existsByReference("PAY-TEST-001"))
                                 .thenReturn(false);
@@ -109,6 +110,7 @@ class PaymentServiceTest {
                                 .thenReturn(outboxEvent);
 
                 PaymentCreationResult result = paymentService.createPayment(
+                                merchantId,
                                 "PAY-TEST-001",
                                 new BigDecimal("5000.00"),
                                 "NGN",
@@ -151,12 +153,14 @@ class PaymentServiceTest {
 
         @Test
         void shouldRejectDuplicatePaymentReference() {
+                UUID merchantId = UUID.randomUUID();
                 when(paymentRepository.existsByReference("PAY-TEST-001"))
                                 .thenReturn(true);
 
                 assertThrows(
                                 DomainException.class,
                                 () -> paymentService.createPayment(
+                                                merchantId,
                                                 "PAY-TEST-001",
                                                 new BigDecimal("5000.00"),
                                                 "NGN", "customer@example.com"));
