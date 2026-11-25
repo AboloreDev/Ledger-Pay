@@ -24,6 +24,8 @@
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/config/RestClientConfig.java
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/config/SchedulerConfig.java
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/config/SecurityConfig.java
+/Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/journal/dto/JournalEntryResponse.java
+/Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/journal/dto/JournalLineResponse.java
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/journal/entity/JournalEntries.java
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/journal/entity/JournalEntryRequest.java
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/journal/entity/JournalLineRequest.java
@@ -33,6 +35,7 @@
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/journal/repository/JournalLineRepository.java
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/journal/rest/JournalEntryController.java
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/journal/service/JournalPostingService.java
+/Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/journal/service/JournalService.java
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/ledger/entity/LedgerAccount.java
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/ledger/entity/LedgerAccountStatus.java
 /Users/mac/Desktop/ledger-pay/server/src/main/java/com/abolore/ledger_pay/ledger/entity/LedgerAccountType.java

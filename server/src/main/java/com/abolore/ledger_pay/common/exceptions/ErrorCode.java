@@ -25,6 +25,7 @@ public enum ErrorCode {
     DUPLICATE_SOURCE_POSTING(HttpStatus.CONFLICT, "Duplicate ledger source events"),
     JOURNAL_BAD_REQUEST(HttpStatus.BAD_REQUEST, "Bad Journal posting Request "),
     UNBALANCED_JOURNAL_ENTRY(HttpStatus.UNPROCESSABLE_ENTITY, "Unbalanced Journal Entry"),
+    JOURNAL_ENTRY_NOT_FOUND(HttpStatus.NOT_FOUND, "Journal not found"),
 
     // Webhook Errors
     WEBHOOK_PROCESSING_FAILED(HttpStatus.UNPROCESSABLE_ENTITY, "Webhook Processing failed"),

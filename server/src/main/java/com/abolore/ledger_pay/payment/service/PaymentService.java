@@ -99,11 +99,30 @@ public class PaymentService {
                 return new PaymentCreationResult(payment, null);
         }
 
+        // Admin
         @Transactional(readOnly = true)
         public Payment getPaymentById(UUID id) {
                 return paymentRepository.findById(id)
                                 .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,
                                                 "Payment not found: " + id));
+        }
+
+        @Transactional(readOnly = true)
+        public Payment getPaymentByReference(String reference) {
+                return paymentRepository.findByReference(reference)
+                                .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,
+                                                "Payment not found: " + reference));
+        }
+
+        public Page<PaymentResponse> getAllPaymentForMerchant(Pageable pageable) {
+
+                Page<Payment> payment = paymentRepository.findAll(pageable);
+
+                if (payment.isEmpty()) {
+                        return Page.empty(pageable);
+                }
+
+                return payment.map(PaymentResponse::from);
         }
 
         // Scoped to merchant
@@ -115,32 +134,20 @@ public class PaymentService {
         }
 
         @Transactional(readOnly = true)
-        public Payment getPaymentByReference(String reference) {
-                return paymentRepository.findByReference(reference)
-                                .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,
-                                                "Payment not found: " + reference));
-        }
-
-        // Scoped to merchant
-        @Transactional(readOnly = true)
         public Payment getPaymentByReference(String reference, UUID merchantId) {
                 return paymentRepository.findByReferenceAndMerchant_Id(reference, merchantId)
                                 .orElseThrow(() -> DomainException.of(ErrorCode.PAYMENT_NOT_FOUND,
                                                 "Payment not found for merchant: " + reference));
         }
 
-        // Return all merchant
         @Transactional(readOnly = true)
         public Page<PaymentResponse> getAllPaymentForMerchant(UUID merchantId, Pageable pageable) {
 
                 Page<Payment> payment = paymentRepository.findAllByMerchant_Id(merchantId, pageable);
 
-                return payment.map(PaymentResponse::from);
-        }
-
-        public Page<PaymentResponse> getAllPaymentForMerchant(Pageable pageable) {
-
-                Page<Payment> payment = paymentRepository.findAllByMerchant_Id(pageable);
+                if (payment.isEmpty()) {
+                        return Page.empty(pageable);
+                }
 
                 return payment.map(PaymentResponse::from);
         }

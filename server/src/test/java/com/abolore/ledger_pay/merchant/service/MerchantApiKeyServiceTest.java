@@ -2,10 +2,8 @@ package com.abolore.ledger_pay.merchant.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.time.Instant;
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -16,7 +14,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.abolore.ledger_pay.merchant_keys.entity.MerchantApiKey;
-import com.abolore.ledger_pay.merchant_keys.entity.MerchantApiKeyStatus;
 import com.abolore.ledger_pay.merchant_keys.repository.MerchantApiKeyRepository;
 import com.abolore.ledger_pay.merchant_keys.service.MerchantApiKeyService;
 import com.abolore.ledger_pay.merchants.entity.Merchant;

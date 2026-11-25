@@ -17,13 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.abolore.ledger_pay.merchants.dto.MerchantPrincipal;
-import com.abolore.ledger_pay.merchants.entity.Merchant;
 import com.abolore.ledger_pay.payment.dto.CreatePaymentRequest;
 import com.abolore.ledger_pay.payment.dto.PaymentCreationResult;
 import com.abolore.ledger_pay.payment.dto.PaymentResponse;
 import com.abolore.ledger_pay.payment.entity.Payment;
 import com.abolore.ledger_pay.payment.service.PaymentService;
-import com.abolore.ledger_pay.reconciliation.dto.ReconciliationRunResponse;
 
 import jakarta.validation.Valid;
 
@@ -56,21 +54,11 @@ public class PaymentController {
                         payment.checkoutUrl()));
     }
 
+    // Admin Scoped
     @GetMapping("/{id}")
     public ResponseEntity<PaymentResponse> getPaymentById(@PathVariable UUID id) {
 
         Payment payment = paymentService.getPaymentById(id);
-
-        return ResponseEntity.ok(PaymentResponse.from(payment));
-    }
-
-    @GetMapping("/{id}/merchant")
-    public ResponseEntity<PaymentResponse> getPaymentById(
-            @PathVariable UUID id, @PathVariable UUID merchantId, Authentication authentication) {
-
-        MerchantPrincipal principal = (MerchantPrincipal) authentication.getPrincipal();
-
-        Payment payment = paymentService.getPaymentById(id, principal.merchantId());
 
         return ResponseEntity.ok(PaymentResponse.from(payment));
     }
@@ -84,6 +72,26 @@ public class PaymentController {
         return ResponseEntity.ok(PaymentResponse.from(payment));
     }
 
+    @GetMapping
+    public ResponseEntity<Page<PaymentResponse>> getPaymentHistory(
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+
+        Page<PaymentResponse> history = paymentService.getAllPaymentForMerchant(pageable);
+
+        return ResponseEntity.ok(history);
+    }
+
+    // Merchant Scoped
+    @GetMapping("/{id}/merchant")
+    public ResponseEntity<PaymentResponse> getPaymentById(@PathVariable UUID id, Authentication authentication) {
+
+        MerchantPrincipal principal = (MerchantPrincipal) authentication.getPrincipal();
+
+        Payment payment = paymentService.getPaymentById(id, principal.merchantId());
+
+        return ResponseEntity.ok(PaymentResponse.from(payment));
+    }
+
     @GetMapping("/reference/{reference}/merchant")
     public ResponseEntity<PaymentResponse> getPaymentByReference(@PathVariable String reference,
             Authentication authentication) {
@@ -91,14 +99,6 @@ public class PaymentController {
         MerchantPrincipal principal = (MerchantPrincipal) authentication.getPrincipal();
 
         Payment payment = paymentService.getPaymentByReference(reference, principal.merchantId());
-
-        return ResponseEntity.ok(PaymentResponse.from(payment));
-    }
-
-    @PostMapping("/{id}/succeed")
-    public ResponseEntity<PaymentResponse> markPaymentSucceeded(@PathVariable UUID id) {
-
-        Payment payment = paymentService.markPaymentSucceeded(id);
 
         return ResponseEntity.ok(PaymentResponse.from(payment));
     }
@@ -115,13 +115,12 @@ public class PaymentController {
         return ResponseEntity.ok(history);
     }
 
-    @GetMapping
-    public ResponseEntity<Page<PaymentResponse>> getPaymentHistory(
-            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+    @PostMapping("/{id}/succeed")
+    public ResponseEntity<PaymentResponse> markPaymentSucceeded(@PathVariable UUID id) {
 
-        Page<PaymentResponse> history = paymentService.getAllPaymentForMerchant(pageable);
+        Payment payment = paymentService.markPaymentSucceeded(id);
 
-        return ResponseEntity.ok(history);
+        return ResponseEntity.ok(PaymentResponse.from(payment));
     }
 
 }
